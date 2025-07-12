@@ -1,2 +1,55 @@
-# FutekForceTorqueReaderUSB520_ReubenPython3Class
+###########################
+
+FutekForceTorqueReaderUSB520_ReubenPython3Class
+
 Control class (eventually including ability to hook to Tkinter GUI) to control/read load-cell data from the Futek USB520 Force/Torque Reader.
+
+https://www.futek.com/store/instruments/usb/mv-v-amplified-and-encoder-input-usb-solution-USB520/FSH03944
+
+DotNET API Documentation: https://media.futek.com/docs/dotnet/api/FUTEK_USB_DLL~FUTEK_USB_DLL.USB_DLL_methods.html
+
+Reuben Brewer, Ph.D.
+
+reuben.brewer@gmail.com
+
+www.reubotics.com
+
+Apache 2 License
+
+Software Revision A, 07/11/2025
+
+Verified working on:
+
+Python 3.11/12
+
+Windows 10/11 64-bit
+
+Note For BareBones___FutekForceTorqueReaderUSB520_ReubenPython3Class.py:
+
+Although ASCII-output is available, it's limited to 10Hz. As such, this code supports only the Windows-DLL method of communicating with the reader.
+
+IMPORTANT NOTE 1:
+
+In the folder "\InstallFiles_and_SupportDocuments\futek-usb-dll", there are DLL files for both 32 and 64-bit Python. 99% of users will want the 64-bit version,
+but you can always use the 32-bit version if you need to pair with 32-bit Python.
+
+IMPORTANT NOTE 2:
+
+Once your DLL file is downloaded and extracted, right-click the DLL file and click "Unblock" from the bottom of the tab (Windows' default is to block it for security reasons).
+Alternatively, you can enter into the DLL-containing-folder from ADMIN PowerShell and enter the command:
+
+Get-ChildItem -Path . -Filter *.dll | Unblock-File
+
+###########################
+
+
+
+########################### Python module installation instructions, all OS's
+
+BareBones___FutekForceTorqueReaderUSB520_ReubenPython3Class.py, ListOfModuleDependencies_All:['pythonnet', 'FUTEK_USB_DLL', 'keyboard']
+
+pip install pythonnet (this is where clr is imported from).
+
+NOTE: For loading the DLL via the clr module, it's critical to use the clr *from the pythonnet module ("pip install pythonnet"), not from a stand-alone clr module.
+
+###########################
