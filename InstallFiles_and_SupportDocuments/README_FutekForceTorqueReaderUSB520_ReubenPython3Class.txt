@@ -2,7 +2,7 @@
 
 FutekForceTorqueReaderUSB520_ReubenPython3Class
 
-Control class (eventually including ability to hook to Tkinter GUI) to control/read load-cell data from the Futek USB520 Force/Torque Reader.
+Control class (including ability to hook to Tkinter GUI) to control/read load-cell data from the Futek USB520 Force/Torque Reader.
 
 https://www.futek.com/store/instruments/usb/mv-v-amplified-and-encoder-input-usb-solution-USB520/FSH03944
 
@@ -16,7 +16,7 @@ www.reubotics.com
 
 Apache 2 License
 
-Software Revision A, 07/11/2025
+Software Revision B, 07/25/2025
 
 Verified working on:
 
@@ -24,7 +24,7 @@ Python 3.11/12
 
 Windows 10/11 64-bit
 
-Note For BareBones___FutekForceTorqueReaderUSB520_ReubenPython3Class.py:
+IMPORTANT NOTE 0:
 
 Although ASCII-output is available, it's limited to 10Hz. As such, this code supports only the Windows-DLL method of communicating with the reader.
 
@@ -46,10 +46,27 @@ Get-ChildItem -Path . -Filter *.dll | Unblock-File
 
 ########################### Python module installation instructions, all OS's
 
+############
+
 BareBones___FutekForceTorqueReaderUSB520_ReubenPython3Class.py, ListOfModuleDependencies_All:['pythonnet', 'FUTEK_USB_DLL', 'keyboard']
 
 pip install pythonnet (this is where clr is imported from).
 
 NOTE: For loading the DLL via the clr module, it's critical to use the clr *from the pythonnet module ("pip install pythonnet"), not from a stand-alone clr module.
+
+############
+
+############
+
+FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies: ['clr', 'FUTEK_USB_DLL', 'LowPassFilterForDictsOfLists_ReubenPython2and3Class', 'ZeroAndSnapshotData_ReubenPython2and3Class']
+
+FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies_TestProgram: ['CSVdataLogger_ReubenPython3Class', 'EntryListWithBlinking_ReubenPython2and3Class', 'keyboard', 'MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class', 'MyPrint_ReubenPython2and3Class']
+
+FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies_NestedLayers: ['EntryListWithBlinking_ReubenPython2and3Class', 'future.builtins', 'GetCPUandMemoryUsageOfProcessByPID_ReubenPython3Class', 'LowPassFilter_ReubenPython2and3Class', 'numpy', 'pexpect', 'psutil', 'pyautogui']
+
+FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies_All:['clr', 'CSVdataLogger_ReubenPython3Class', 'EntryListWithBlinking_ReubenPython2and3Class', 'FUTEK_USB_DLL', 'future.builtins', 'GetCPUandMemoryUsageOfProcessByPID_ReubenPython3Class', 'keyboard', 'LowPassFilter_ReubenPython2and3Class', 'LowPassFilterForDictsOfLists_ReubenPython2and3Class', 'MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class', 'MyPrint_ReubenPython2and3Class', 'numpy', 'pexpect', 'psutil', 'pyautogui', 'ZeroAndSnapshotData_ReubenPython2and3Class']
+
+############
+
 
 ###########################
