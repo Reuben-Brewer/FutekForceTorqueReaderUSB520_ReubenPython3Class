@@ -16,7 +16,7 @@ www.reubotics.com
 
 Apache 2 License
 
-Software Revision B, 07/25/2025
+Software Revision C, 08/01/2025
 
 Verified working on:
 
@@ -42,8 +42,6 @@ Get-ChildItem -Path . -Filter *.dll | Unblock-File
 
 ###########################
 
-
-
 ########################### Python module installation instructions, all OS's
 
 ############
@@ -67,6 +65,5 @@ FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies_Nested
 FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies_All:['clr', 'CSVdataLogger_ReubenPython3Class', 'EntryListWithBlinking_ReubenPython2and3Class', 'FUTEK_USB_DLL', 'future.builtins', 'GetCPUandMemoryUsageOfProcessByPID_ReubenPython3Class', 'keyboard', 'LowPassFilter_ReubenPython2and3Class', 'LowPassFilterForDictsOfLists_ReubenPython2and3Class', 'MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class', 'MyPrint_ReubenPython2and3Class', 'numpy', 'pexpect', 'psutil', 'pyautogui', 'ZeroAndSnapshotData_ReubenPython2and3Class']
 
 ############
-
 
 ###########################
