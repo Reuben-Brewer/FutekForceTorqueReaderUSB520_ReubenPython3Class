@@ -6,7 +6,7 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision B, 07/25/2025
+Software Revision C, 08/01/2025
 
 Verified working on: Python 3.11/3.12 for Windows 10, 11 64-bit.
 '''
@@ -695,7 +695,7 @@ if __name__ == '__main__':
     global Tab_MyPrint
 
     global GUI_RootAfterCallbackInterval_Milliseconds
-    GUI_RootAfterCallbackInterval_Milliseconds = 5
+    GUI_RootAfterCallbackInterval_Milliseconds = 30
     #################################################
     #################################################
 
@@ -749,7 +749,7 @@ if __name__ == '__main__':
     FutekForceTorqueReaderUSB520_FTmeasurement_ExponentialSmoothingFilterLambda = 0.95
 
     global FutekForceTorqueReaderUSB520_FTmeasurementDerivative_ExponentialSmoothingFilterLambda
-    FutekForceTorqueReaderUSB520_FTmeasurementDerivative_ExponentialSmoothingFilterLambda = 0.95
+    FutekForceTorqueReaderUSB520_FTmeasurementDerivative_ExponentialSmoothingFilterLambda = 0.5
     #################################################
     #################################################
 

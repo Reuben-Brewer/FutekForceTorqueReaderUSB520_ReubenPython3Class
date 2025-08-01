@@ -6,7 +6,7 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision B, 07/25/2025
+Software Revision C, 08/01/2025
 
 Verified working on: Python 3.11/3.12 for Windows 10, 11 64-bit.
 '''
@@ -679,7 +679,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
     ##########################################################################################################
     def CTRLc_HandlerFunction(self, signum, frame):
 
-        print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, CTRLc_HandlerFunction event firing!")
+        print("FutekForceTorqueReaderUSB520_ReubenPython3Class, CTRLc_HandlerFunction event firing!")
 
         self.ExitProgram_Callback()
 
@@ -1499,6 +1499,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
                 self.MostRecentDataDict["AngularSpeedValue_AllUnitsDict"] = self.AngularSpeedValue_AllUnitsDict
 
                 self.LastFTmeasurement_Raw = self.CurrentFTmeasurement_Raw
+                self.LastFTmeasurement_Filtered = self.CurrentFTmeasurement_Filtered
                 ##########################################################################################################
                 ##########################################################################################################
 
