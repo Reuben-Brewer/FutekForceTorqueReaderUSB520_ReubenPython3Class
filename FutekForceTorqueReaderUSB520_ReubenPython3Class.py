@@ -6,7 +6,7 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision C, 08/01/2025
+Software Revision D, 08/08/2025
 
 Verified working on: Python 3.11/3.12 for Windows 10, 11 64-bit.
 '''
@@ -493,9 +493,26 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
         #########################################################
         #########################################################
 
+        '''
         #########################################################
         #########################################################
-        self.DedicatedRxThread_TimeToSleepEachLoop = 1.0/(1.15*self.SamplingRateInHz) #Wasteful to query much faster than the sensor can sample.
+        self.DedicatedRxThread_TimeToSleepEachLoop = 1.0/(self.SamplingRateInHz) - 0.001 #Wasteful to query much faster than the sensor can sample.
+
+        if self.DedicatedRxThread_TimeToSleepEachLoop <= 0.0:
+            self.DedicatedRxThread_TimeToSleepEachLoop = 0.001
+        #########################################################
+        #########################################################
+        '''
+
+        #########################################################
+        #########################################################
+        if "DedicatedRxThread_TimeToSleepEachLoop" in SetupDict:
+            self.DedicatedRxThread_TimeToSleepEachLoop = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("DedicatedRxThread_TimeToSleepEachLoop", SetupDict["DedicatedRxThread_TimeToSleepEachLoop"], 0.001, 100000)
+
+        else:
+            self.DedicatedRxThread_TimeToSleepEachLoop = 0.001
+
+        print("IngeniaBLDC_ReubenPython3Class __init__: DedicatedRxThread_TimeToSleepEachLoop: " + str(self.DedicatedRxThread_TimeToSleepEachLoop))
         #########################################################
         #########################################################
 
@@ -594,12 +611,6 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
         #########################################################
         #########################################################
-        self.CTRLc_RegisterHandlerFunction()
-        #########################################################
-        #########################################################
-
-        #########################################################
-        #########################################################
         self.DedicatedRxThread_ThreadingObject = threading.Thread(target=self.DedicatedRxThread, args=())
         self.DedicatedRxThread_ThreadingObject.start()
         #########################################################
@@ -651,6 +662,12 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
         #########################################################
         #########################################################
+        self.CTRLc_RegisterHandlerFunction()
+        #########################################################
+        #########################################################
+
+        #########################################################
+        #########################################################
         self.OBJECT_CREATED_SUCCESSFULLY_FLAG = 1
         #########################################################
         #########################################################
@@ -666,8 +683,15 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
     ##########################################################################################################
     def CTRLc_RegisterHandlerFunction(self):
 
-        signal.signal(signal.SIGINT, self.CTRLc_HandlerFunction)
+        CurrentHandlerRegisteredForSIGINT = signal.getsignal(signal.SIGINT)
+        defaultish = (signal.SIG_DFL, signal.SIG_IGN, None, getattr(signal, "default_int_handler", None)) #Treat Python's built-in default handler as "unregistered"
 
+        if CurrentHandlerRegisteredForSIGINT in defaultish:  # Only install if it's default/ignored (i.e., nobody set it yet)
+            signal.signal(signal.SIGINT, self.CTRLc_HandlerFunction)
+            print("FutekForceTorqueReaderUSB520_ReubenPython3Class, CTRLc_RegisterHandlerFunction event fired!")
+
+        else:
+            print("FutekForceTorqueReaderUSB520_ReubenPython3Class, could not register CTRLc_RegisterHandlerFunction (already registered previously)")
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
@@ -1316,10 +1340,14 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
     ##########################################################################################################
     def DedicatedRxThread(self):
 
+        #########################################################
+        #########################################################
         self.MyPrint_WithoutLogFile("Started DedicatedRxThread for FutekForceTorqueReaderUSB520_ReubenPython3Class object.")
         self.DedicatedRxThread_StillRunningFlag = 1
 
         self.StartingTime_CalculatedFromDedicatedRxThread = self.getPreciseSecondsTimeStampString()
+        #########################################################
+        #########################################################
 
         ##########################################################################################################
         ##########################################################################################################

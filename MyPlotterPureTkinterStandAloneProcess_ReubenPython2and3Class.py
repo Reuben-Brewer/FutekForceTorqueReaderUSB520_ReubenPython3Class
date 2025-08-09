@@ -6,7 +6,7 @@ reuben.brewer@gmail.com,
 www.reubotics.com
 
 Apache 2 License
-Software Revision W, 07/16/2025
+Software Revision Y, 08/08/2025
 
 Verified working on: Python 3.11/12 for Windows 10/11 64-bit, Ubuntu 20.04, and Raspberry Pi Bookworm.
 '''
@@ -153,14 +153,21 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
     ##########################################################################################################
     ##########################################################################################################
 
-    ##########################################################################################################
+    ###########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
     def CTRLc_RegisterHandlerFunction(self):
 
-        signal.signal(signal.SIGINT, self.CTRLc_HandlerFunction)
+        CurrentHandlerRegisteredForSIGINT = signal.getsignal(signal.SIGINT)
+        defaultish = (signal.SIG_DFL, signal.SIG_IGN, None, getattr(signal, "default_int_handler", None)) #Treat Python's built-in default handler as "unregistered"
 
+        if CurrentHandlerRegisteredForSIGINT in defaultish:  # Only install if it's default/ignored (i.e., nobody set it yet)
+            signal.signal(signal.SIGINT, self.CTRLc_HandlerFunction)
+            print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, CTRLc_RegisterHandlerFunction event fired!")
+
+        else:
+            print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, could not register CTRLc_RegisterHandlerFunction (already registered previously)")
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
@@ -185,7 +192,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
-    def __ProcessVariablesThatCanNOTbeLiveUpdated(self, SetupDict):
+    def __ProcessVariablesThatCanNOTbeLiveUpdated(self, SetupDict, PrintInfoForDebuggingFlag = 0):
 
         pass #Can add variables here later as needed.
 
@@ -203,7 +210,15 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         ##########################################################################################################
         ##########################################################################################################
         ##########################################################################################################
-        self.RootGeometryHasBeenModifiedFlag = 0
+        self.SetupDict = SetupDict
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+
+        ##########################################################################################################
+        ##########################################################################################################
+        ########################################################################################################## UNICORN
+        self.RootGeometryHasBeenModifiedFlag = 1 #By default, ALWAYS clear the graph when we enter this function.
         ##########################################################################################################
         ##########################################################################################################
         ##########################################################################################################
@@ -221,7 +236,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
             else:
                 self.GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents = 30  # Will get us around 30Hz actual when plottting 2 curves with 100 data points each and 35 tick marks on each axis
 
-            print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents: " + str(self.GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents))
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents: " + str(self.GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents))
             ##########################################
             ##########################################
 
@@ -232,7 +247,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
             else:
                 self.EnableInternal_MyPrint_Flag = 0
 
-            print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: EnableInternal_MyPrint_Flag: " + str(self.EnableInternal_MyPrint_Flag))
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: EnableInternal_MyPrint_Flag: " + str(self.EnableInternal_MyPrint_Flag))
             ##########################################
             ##########################################
 
@@ -243,7 +258,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
             else:
                 self.PrintToConsoleFlag = 1
 
-            print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: PrintToConsoleFlag: " + str(self.PrintToConsoleFlag))
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: PrintToConsoleFlag: " + str(self.PrintToConsoleFlag))
             ##########################################
             ##########################################
 
@@ -254,7 +269,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
             else:
                 self.NumberOfPrintLines = 10
 
-            print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: NumberOfPrintLines: " + str(self.NumberOfPrintLines))
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: NumberOfPrintLines: " + str(self.NumberOfPrintLines))
             ##########################################
             ##########################################
 
@@ -265,7 +280,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
             else:
                 self.GraphCanvasWidth = 640.0
 
-            print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GraphCanvasWidth: " + str(self.GraphCanvasWidth))
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GraphCanvasWidth: " + str(self.GraphCanvasWidth))
             ##########################################
             ##########################################
 
@@ -276,7 +291,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
             else:
                 self.GraphCanvasHeight = 480.0
 
-            print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GraphCanvasHeight: " + str(self.GraphCanvasHeight))
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GraphCanvasHeight: " + str(self.GraphCanvasHeight))
             ##########################################
             ##########################################
 
@@ -287,7 +302,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
             else:
                 self.GraphCanvasWindowTitle = "MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class"
 
-            print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GraphCanvasWindowTitle: " + self.GraphCanvasWindowTitle)
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GraphCanvasWindowTitle: " + self.GraphCanvasWindowTitle)
             ##########################################
             ##########################################
 
@@ -295,8 +310,6 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
             ##########################################
             if "GraphCanvasWindowStartingX" in GUIparametersDict:
                 self.GraphCanvasWindowStartingX = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GraphCanvasWindowStartingX", GUIparametersDict["GraphCanvasWindowStartingX"], 0.0, 1000000.0))
-                self.RootGeometryHasBeenModifiedFlag = 1
-
             else:
                 self.GraphCanvasWindowStartingX = 0.0
 
@@ -308,8 +321,6 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
             ##########################################
             if "GraphCanvasWindowStartingY" in GUIparametersDict:
                 self.GraphCanvasWindowStartingY = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GraphCanvasWindowStartingY", GUIparametersDict["GraphCanvasWindowStartingY"], 0.0, 1000000.0))
-                self.RootGeometryHasBeenModifiedFlag = 1
-
             else:
                 self.GraphCanvasWindowStartingY = 0.0
 
@@ -332,7 +343,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         else:
             self.ParentPID = -11111
 
-        print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: ParentPID: " + str(self.ParentPID))
+        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: ParentPID: " + str(self.ParentPID))
         ##########################################
         ##########################################
 
@@ -696,6 +707,39 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: SavePlot_DirectoryPath: " + str(self.SavePlot_DirectoryPath))
         ##########################################
         ##########################################
+        
+        ##########################################
+        ##########################################
+        if "KeepPlotterWindowAlwaysOnTopFlag" in SetupDict:
+            self.KeepPlotterWindowAlwaysOnTopFlag = self.PassThrough0and1values_ExitProgramOtherwise("KeepPlotterWindowAlwaysOnTopFlag", SetupDict["KeepPlotterWindowAlwaysOnTopFlag"])
+        else:
+            self.KeepPlotterWindowAlwaysOnTopFlag = 0
+
+        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: KeepPlotterWindowAlwaysOnTopFlag: " + str(self.KeepPlotterWindowAlwaysOnTopFlag))
+        ##########################################
+        ##########################################
+
+        ##########################################
+        ##########################################
+        if "RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag" in SetupDict:
+            self.RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag = self.PassThrough0and1values_ExitProgramOtherwise("RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag", SetupDict["RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag"])
+        else:
+            self.RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag = 0
+
+        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag: " + str(self.RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag))
+        ##########################################
+        ##########################################
+        
+        ##########################################
+        ##########################################
+        if "AllowResizingOfWindowFlag" in SetupDict:
+            self.AllowResizingOfWindowFlag = self.PassThrough0and1values_ExitProgramOtherwise("AllowResizingOfWindowFlag", SetupDict["AllowResizingOfWindowFlag"])
+        else:
+            self.AllowResizingOfWindowFlag = 1
+
+        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: AllowResizingOfWindowFlag: " + str(self.AllowResizingOfWindowFlag))
+        ##########################################
+        ##########################################
 
         ##########################################################################################################
         ##########################################################################################################
@@ -867,9 +911,10 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         ##########################################################################################################
         ##########################################################################################################
 
-        self.__ProcessVariablesThatCanNOTbeLiveUpdated(SetupDict)
+        self.__ProcessVariablesThatCanNOTbeLiveUpdated(SetupDict, PrintInfoForDebuggingFlag = 1)
 
-        self.__ProcessVariablesThatCanBeLiveUpdated(SetupDict)
+        self.RootGeometryHasBeenModified_HasThisEventFiredBeforeFlag = 0
+        self.__ProcessVariablesThatCanBeLiveUpdated(SetupDict, PrintInfoForDebuggingFlag = 1)
 
         ##########################################################################################################
         ##########################################################################################################
@@ -1062,8 +1107,8 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
 
                     ##########################################################################################################
                     ##########################################################################################################
-                    if "YaxisAutoscaleFlag" in inputDict:
-                        self.__ProcessVariablesThatCanBeLiveUpdated(inputDict)
+                    if "YaxisAutoscaleFlag" in inputDict: #Check if a SetupDict is being passed-in
+                        self.__ProcessVariablesThatCanBeLiveUpdated(inputDict, PrintInfoForDebuggingFlag=0)
                     ##########################################################################################################
                     ##########################################################################################################
 
@@ -1104,6 +1149,11 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
                         ##########################################################################################################
                         if "ResetMinAndMax" in inputDict:
                             self.ResetMinAndMax()
+                        ##########################################################################################################
+
+                        ##########################################################################################################
+                        if "ClearPlot" in inputDict:
+                            self.ClearPlot()
                         ##########################################################################################################
 
                         ##########################################################################################################
@@ -1363,6 +1413,22 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
 
         try:
             self.MultiprocessingQueue_Rx.put(dict([("ResetMinAndMax", 1)]))
+        except:
+            pass
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    def SendClearPlotCommandToStandAloneProcess(self):
+
+        try:
+            self.MultiprocessingQueue_Rx.put(dict([("ClearPlot", 1)]))
         except:
             pass
 
@@ -1872,6 +1938,42 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
     ##########################################################################################################
     ##########################################################################################################
 
+    ########################################################################################################## unicorn
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    def RootConfigurationUpdate(self):
+
+        ###################################################
+        ###################################################
+        self.root.title(self.GraphCanvasWindowTitle)
+        self.root.protocol("WM_DELETE_WINDOW", self.ExitProgram_Callback)
+        self.root.geometry('%dx%d+%d+%d' % (self.GraphCanvasWidth, self.GraphCanvasHeight + 50, self.GraphCanvasWindowStartingX, self.GraphCanvasWindowStartingY))  # +50 for Debug_Label
+        self.root.after(self.GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents, self.__GUI_update_clock)
+        ###################################################
+        ###################################################
+
+        ###################################################
+        ###################################################
+        self.root.resizable(bool(self.AllowResizingOfWindowFlag), bool(self.AllowResizingOfWindowFlag))  #horizontal, vertical
+        self.root.overrideredirect(bool(self.RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag))  # Removes title bar, border, and close-button. Disallows movement of the window.
+        self.root.wm_attributes('-topmost', bool(self.KeepPlotterWindowAlwaysOnTopFlag))
+        ###################################################
+        ###################################################
+
+        ################################################### SET THE DEFAULT FONT FOR ALL WIDGETS CREATED AFTTER/BELOW THIS CALL
+        ###################################################
+        default_font = tkFont.nametofont("TkDefaultFont")  # TkTextFont, TkFixedFont
+        default_font.configure(size=8)
+        self.root.option_add("*Font", default_font)
+        ###################################################
+        ###################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
@@ -1893,24 +1995,15 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
 
         ###################################################
         ###################################################
-        self.root.title(self.GraphCanvasWindowTitle)
-        self.root.protocol("WM_DELETE_WINDOW", self.ExitProgram_Callback)
-        self.root.after(self.GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents, self.__GUI_update_clock)
-        self.root.geometry('%dx%d+%d+%d' % (self.GraphCanvasWidth, self.GraphCanvasHeight + 50, self.GraphCanvasWindowStartingX, self.GraphCanvasWindowStartingY))  # +50 for Debug_Label
-        #self.root.overrideredirect(True)  # Removes title bar, border, etc.
-        #self.root.wm_attributes('-topmost', True) #Ensure both windows stay above other windows:
+        self.RootConfigurationUpdate()
         ###################################################
         ###################################################
 
-        ################################################### SET THE DEFAULT FONT FOR ALL WIDGETS CREATED AFTTER/BELOW THIS CALL
-        ###################################################
-        default_font = tkFont.nametofont("TkDefaultFont")  # TkTextFont, TkFixedFont
-        default_font.configure(size=8)
-        self.root.option_add("*Font", default_font)
         ###################################################
         ###################################################
-
         self.LineIDlist = []
+        ###################################################
+        ###################################################
 
         ###################################################
         ###################################################
@@ -2000,6 +2093,13 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         ###################################################
         self.ResetMinAndMax_Button = Button(self.PlotControlsFrame, text='ResetMinMax', state="normal", width=self.ButtonWidth, font=("Helvetica", 8), command=lambda i=1: self.ResetMinAndMax_ButtonResponse())
         self.ResetMinAndMax_Button.grid(row=0, column=7, padx=1, pady=1, columnspan=1, rowspan=1)
+        ###################################################
+        ###################################################
+
+        ###################################################
+        ###################################################
+        self.ClearPlot_Button = Button(self.PlotControlsFrame, text='Clear', state="normal", width=self.ButtonWidth, font=("Helvetica", 8), command=lambda i=1: self.ClearPlot_ButtonResponse())
+        self.ClearPlot_Button.grid(row=0, column=8, padx=1, pady=1, columnspan=1, rowspan=1)
         ###################################################
         ###################################################
 
@@ -2241,9 +2341,43 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
+    def ClearPlot_ButtonResponse(self):
+
+        self.ClearPlot()
+
+        # print("ClearPlot_ButtonResponse event fired!")
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    def ClearPlot(self):
+
+        self.CanvasForDrawingGraph.delete("all")
+        self.CanvasForDrawingGraph.update_idletasks()
+
+        self.CanvasForDrawingGraph.config(width=self.GraphCanvasWidth, height=self.GraphCanvasHeight)
+
+        self.__ProcessVariablesThatCanBeLiveUpdated(self.SetupDict, PrintInfoForDebuggingFlag=0) #Have to repopulate it.
+
+        print("$$$$$$$$$$$ ClearPlot event fired! $$$$$$$$$$$")
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
     def OnCanvasClickCallbackFunction(self, event):
-        self.ToggleFreezePlot()
-        print("[" + str(event.x) + ", " + str(event.y) + "]")
+
+        print("OnCanvasClickCallbackFunction: Clicked at position [" + str(event.x) + ", " + str(event.y) + "]")
 
     ##########################################################################################################
     ##########################################################################################################
@@ -2899,24 +3033,37 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
                 ##########################################################################################################
                 ##########################################################################################################
                 ##########################################################################################################
+                if self.FreezePlotFlag == 1:
+                    if self.ToggleFreezePlot_Button["text"] != "Unfreeze":
+                        self.ToggleFreezePlot_Button["text"] = "Unfreeze"
+                else:
+                    if self.ToggleFreezePlot_Button["text"] != "Freeze":
+                        self.ToggleFreezePlot_Button["text"] = "Freeze"
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+                if self.RootGeometryHasBeenModifiedFlag == 1:
+
+                    self.RootConfigurationUpdate()
+
+                    if self.RootGeometryHasBeenModified_HasThisEventFiredBeforeFlag == 1:
+                        self.ClearPlot()
+                        self.FreezePlotFlag = 0 #Make sure that the plot isn't frozen so that we can redraw it.
+
+                    self.RootGeometryHasBeenModified_HasThisEventFiredBeforeFlag = 1
+                    self.RootGeometryHasBeenModifiedFlag = 0
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
                 if self.FreezePlotFlag == 0:
-
-                    ##########################################################################################################
-                    ##########################################################################################################
-                    if self.RootGeometryHasBeenModifiedFlag == 1:
-                        self.root.geometry('%dx%d+%d+%d' % (self.GraphCanvasWidth,
-                                                            self.GraphCanvasHeight + 50,
-                                                            self.GraphCanvasWindowStartingX,
-                                                            self.GraphCanvasWindowStartingY))  # +50 for Debug_Label
-
-                        self.CanvasForDrawingGraph.delete("all")
-                        self.CanvasForDrawingGraph.update_idletasks()
-
-                        self.CanvasForDrawingGraph.config(width=self.GraphCanvasWidth, height=self.GraphCanvasHeight)
-
-                        self.RootGeometryHasBeenModifiedFlag = 0
-                    ##########################################################################################################
-                    ##########################################################################################################
 
                     ##########################################################################################################
                     ##########################################################################################################
