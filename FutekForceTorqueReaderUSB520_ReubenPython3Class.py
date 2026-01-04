@@ -6,15 +6,20 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision D, 08/08/2025
+Software Revision E, 12/26/2025
 
-Verified working on: Python 3.11/3.12 for Windows 10, 11 64-bit.
+Verified working on: Python 3.11/12/13 for Windows 10, 11 64-bit.
 '''
 
 __author__ = 'reuben.brewer'
 
 ##########################################################################################################
 ##########################################################################################################
+
+##########################################
+import ReubenGithubCodeModulePaths #Replaces the need to have "ReubenGithubCodeModulePaths.pth" within "C:\Anaconda3\Lib\site-packages".
+ReubenGithubCodeModulePaths.Enable()
+##########################################
 
 ##########################################
 from LowPassFilterForDictsOfLists_ReubenPython2and3Class import *
@@ -269,16 +274,6 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
                 self.USE_GUI_FLAG = 0
 
             print("FutekForceTorqueReaderUSB520_ReubenPython3Class __init__: USE_GUI_FLAG: " + str(self.USE_GUI_FLAG))
-            #########################################################
-            #########################################################
-
-            #########################################################
-            #########################################################
-            if "root" in GUIparametersDict:
-                self.root = GUIparametersDict["root"]
-            else:
-                print("FutekForceTorqueReaderUSB520_ReubenPython3Class __init__: ERROR, must pass in 'root'")
-                return
             #########################################################
             #########################################################
 
@@ -557,10 +552,10 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
         #########################################################
         #new_filtered_value = k * raw_sensor_value + (1 - k) * old_filtered_value
-        self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject_DictOfVariableFilterSettings = dict([("DataStreamingFrequency_CalculatedFromDedicatedRxThread", dict([("UseMedianFilterFlag", 1), ("UseExponentialSmoothingFilterFlag", 1),("ExponentialSmoothingFilterLambda", 0.05)])),
-                                                                                                            ("DataStreamingFrequency_CalculatedFromGUIthread", dict([("UseMedianFilterFlag", 1), ("UseExponentialSmoothingFilterFlag", 1), ("ExponentialSmoothingFilterLambda", 0.05)])),
-                                                                                                            ("FTmeasurement", dict([("UseMedianFilterFlag", 1), ("UseExponentialSmoothingFilterFlag", 1),("ExponentialSmoothingFilterLambda", self.FTmeasurement_ExponentialSmoothingFilterLambda)])),
-                                                                                                            ("FTmeasurementDerivative", dict([("UseMedianFilterFlag", 1), ("UseExponentialSmoothingFilterFlag", 1),("ExponentialSmoothingFilterLambda", self.FTmeasurementDerivative_ExponentialSmoothingFilterLambda)]))])
+        self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject_DictOfVariableFilterSettings = dict([("DataStreamingFrequency_CalculatedFromDedicatedRxThread", dict([("UseMedianFilterFlag", 0), ("UseExponentialSmoothingFilterFlag", 1),("ExponentialSmoothingFilterLambda", 0.05)])),
+                                                                                                            ("DataStreamingFrequency_CalculatedFromGUIthread", dict([("UseMedianFilterFlag", 0), ("UseExponentialSmoothingFilterFlag", 1), ("ExponentialSmoothingFilterLambda", 0.05)])),
+                                                                                                            ("FTmeasurement", dict([("UseMedianFilterFlag", 0), ("UseExponentialSmoothingFilterFlag", 1),("ExponentialSmoothingFilterLambda", self.FTmeasurement_ExponentialSmoothingFilterLambda)])),
+                                                                                                            ("FTmeasurementDerivative", dict([("UseMedianFilterFlag", 0), ("UseExponentialSmoothingFilterFlag", 1),("ExponentialSmoothingFilterLambda", self.FTmeasurementDerivative_ExponentialSmoothingFilterLambda)]))])
 
         self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject_SetupDict = dict([("DictOfVariableFilterSettings", self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject_DictOfVariableFilterSettings)])
 
@@ -618,26 +613,18 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
         #########################################################
         #########################################################
-        if self.USE_GUI_FLAG == 1:
-            self.StartGUI(self.root)
-        #########################################################
-        #########################################################
-
-        #########################################################
-        #########################################################
         self.ZeroAndSnapshotData_Variables_ListOfDicts = [dict([("Variable_Name", "CurrentFTmeasurement"), ("DataCollectionDurationInSecondsForSnapshottingAndZeroing", self.DataCollectionDurationInSecondsForSnapshottingAndZeroing)])]
 
-        self.ZeroAndSnapshotData_GUIparametersDict = dict([("USE_GUI_FLAG", self.ZeroAndSnapshotData___USE_GUI_FLAG),
-                                        ("root", self.root),
-                                        ("EnableInternal_MyPrint_Flag", 0),
-                                        ("NumberOfPrintLines", 10),
-                                        ("UseBorderAroundThisGuiObjectFlag", 1),
-                                        ("GUI_ROW", 10),
-                                        ("GUI_COLUMN", 0),
-                                        ("GUI_PADX", 1),
-                                        ("GUI_PADY", 1),
-                                        ("GUI_ROWSPAN", 1),
-                                        ("GUI_COLUMNSPAN", 1)])
+        self.ZeroAndSnapshotData_GUIparametersDict = dict([("USE_GUI_FLAG", self.ZeroAndSnapshotData___USE_GUI_FLAG and self.USE_GUI_FLAG),
+                                                        ("EnableInternal_MyPrint_Flag", 0),
+                                                        ("NumberOfPrintLines", 10),
+                                                        ("UseBorderAroundThisGuiObjectFlag", 1),
+                                                        ("GUI_ROW", 3),
+                                                        ("GUI_COLUMN", 0),
+                                                        ("GUI_PADX", 1),
+                                                        ("GUI_PADY", 1),
+                                                        ("GUI_ROWSPAN", 1),
+                                                        ("GUI_COLUMNSPAN", 1)])
 
         self.ZeroAndSnapshotData_SetupDict = dict([("GUIparametersDict", self.ZeroAndSnapshotData_GUIparametersDict),
                                                     ("NameToDisplay_UserSet", "ZeroAndSnapshotData"),
@@ -655,7 +642,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
         except:
             exceptions = sys.exc_info()[0]
             print("FutekForceTorqueReaderUSB520_ReubenPython3Class __init__: Exceptions: %s" % exceptions)
-            #traceback.print_exc()
+            traceback.print_exc()
             return
         #########################################################
         #########################################################
@@ -1477,12 +1464,13 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
                 try: #in case there's a division-by-zero.
 
                     ##########################################################################################################
-                    FTmeasurementDerivative_Raw_TEMP = (self.CurrentFTmeasurement_Filtered - self.LastFTmeasurement_Filtered)/(1.0/self.DataStreamingFrequency_CalculatedFromDedicatedRxThread) #We also filter DataStreamingFrequency_CalculatedFromDedicatedRxThread
+                    if self.DataStreamingFrequency_CalculatedFromDedicatedRxThread > 0.0:
+                        FTmeasurementDerivative_Raw_TEMP = (self.CurrentFTmeasurement_Filtered - self.LastFTmeasurement_Filtered)/(1.0/self.DataStreamingFrequency_CalculatedFromDedicatedRxThread) #We also filter DataStreamingFrequency_CalculatedFromDedicatedRxThread
 
-                    ResultsDict = self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject.AddDataDictFromExternalProgram(dict([("FTmeasurementDerivative", FTmeasurementDerivative_Raw_TEMP)]))
+                        ResultsDict = self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject.AddDataDictFromExternalProgram(dict([("FTmeasurementDerivative", FTmeasurementDerivative_Raw_TEMP)]))
 
-                    self.CurrentFTmeasurementDerivative_Raw = ResultsDict["FTmeasurementDerivative"]["Raw_MostRecentValuesList"][0]
-                    self.CurrentFTmeasurementDerivative_Filtered = ResultsDict["FTmeasurementDerivative"]["Filtered_MostRecentValuesList"][0]
+                        self.CurrentFTmeasurementDerivative_Raw = ResultsDict["FTmeasurementDerivative"]["Raw_MostRecentValuesList"][0]
+                        self.CurrentFTmeasurementDerivative_Filtered = ResultsDict["FTmeasurementDerivative"]["Filtered_MostRecentValuesList"][0]
                     ##########################################################################################################
 
                 except:
@@ -1631,23 +1619,15 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
     ##########################################################################################################
     ##########################################################################################################
-    def StartGUI(self, GuiParent):
+    def CreateGUIobjects(self, TkinterParent):
 
-        self.GUI_Thread(GuiParent)
-    ##########################################################################################################
-    ##########################################################################################################
-
-    ##########################################################################################################
-    ##########################################################################################################
-    def GUI_Thread(self, parent):
-
-        print("Starting the GUI_Thread for FutekForceTorqueReaderUSB520_ReubenPython3Class object.")
+        print("FutekForceTorqueReaderUSB520_ReubenPython3Class, CreateGUIobjects event fired.")
 
         #################################################
         #################################################
         #################################################
-        self.root = parent
-        self.parent = parent
+        self.root = TkinterParent
+        self.parent = TkinterParent
         #################################################
         #################################################
         #################################################
@@ -1717,7 +1697,16 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
         #################################################
         self.PrintToGui_Label = Label(self.myFrame, text="PrintToGui_Label", width=75)
         if self.EnableInternal_MyPrint_Flag == 1:
-            self.PrintToGui_Label.grid(row=3, column=0, padx=self.GUI_PADX, pady=self.GUI_PADY, columnspan=10, rowspan=10)
+            self.PrintToGui_Label.grid(row=4, column=0, padx=self.GUI_PADX, pady=self.GUI_PADY, columnspan=10, rowspan=10)
+        #################################################
+        #################################################
+        #################################################
+
+        #################################################
+        #################################################
+        #################################################
+        if self.ZeroAndSnapshotData_OPEN_FLAG == 1:
+            self.ZeroAndSnapshotData_Object.CreateGUIobjects(TkinterParent=self.myFrame)
         #################################################
         #################################################
         #################################################

@@ -6,12 +6,20 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision D, 08/08/2025
+Software Revision E, 12/26/2025
 
-Verified working on: Python 3.11/3.12 for Windows 10, 11 64-bit.
+Verified working on: Python 3.11/12/13 for Windows 10, 11 64-bit.
 '''
 
 __author__ = 'reuben.brewer'
+
+#######################################################################################################################
+#######################################################################################################################
+
+##########################################
+import ReubenGithubCodeModulePaths #Replaces the need to have "ReubenGithubCodeModulePaths.pth" within "C:\Anaconda3\Lib\site-packages".
+ReubenGithubCodeModulePaths.Enable()
+##########################################
 
 ##########################################
 from CSVdataLogger_ReubenPython3Class import *
@@ -31,6 +39,7 @@ import threading
 import collections
 import signal #for CTRLc_HandlerFunction
 import keyboard
+import traceback
 ##########################################
 
 ##########################################
@@ -47,14 +56,17 @@ if platform.system() == "Windows":
     winmm.timeBeginPeriod(1) #Set minimum timer resolution to 1ms so that time.sleep(0.001) behaves properly.
 ##########################################
 
-###########################################################################################################
-##########################################################################################################
+#######################################################################################################################
+#######################################################################################################################
+
+#######################################################################################################################
+#######################################################################################################################
 def getPreciseSecondsTimeStampString():
     ts = time.time()
 
     return ts
-##########################################################################################################
-##########################################################################################################
+#######################################################################################################################
+#######################################################################################################################
 
 #######################################################################################################################
 #######################################################################################################################
@@ -435,9 +447,25 @@ def GUI_Thread():
     global GUI_RootAfterCallbackInterval_Milliseconds
     global USE_TABS_IN_GUI_FLAG
 
+    global FutekForceTorqueReaderUSB520_Object
+    global FutekForceTorqueReaderUSB520_OPEN_FLAG
+
+    global EntryListWithBlinking_Object
+    global EntryListWithBlinking_OPEN_FLAG
+
+    global CSVdataLogger_Object
+    global CSVdataLogger_OPEN_FLAG
+
+    global MyPrint_Object
+    global MyPrint_OPEN_FLAG
+
     ################################################# KEY GUI LINE
     #################################################
     root = Tk()
+    
+    root.protocol("WM_DELETE_WINDOW", ExitProgram_Callback)  # Set the callback function for when the window's closed.
+    root.title("test_program_for_FutekForceTorqueReaderUSB520_ReubenPython3Class")
+    root.geometry('%dx%d+%d+%d' % (root_width, root_height, root_Xpos, root_Ypos)) # set the dimensions of the screen and where it is placed
     #################################################
     #################################################
 
@@ -480,7 +508,8 @@ def GUI_Thread():
         Tab_CSVdataLogger = root
         #################################################
 
-    ##########################################################################################################
+    #################################################
+    #################################################
 
     #################################################
     #################################################
@@ -514,19 +543,46 @@ def GUI_Thread():
     #################################################
     #################################################
 
-    ##########################################################################################################
+    #################################################
+    #################################################
+    if FutekForceTorqueReaderUSB520_OPEN_FLAG == 1:
+        FutekForceTorqueReaderUSB520_Object.CreateGUIobjects(TkinterParent=Tab_FutekForceTorqueReaderUSB520)
+    #################################################
+    #################################################
+
+    #################################################
+    #################################################
+    if EntryListWithBlinking_OPEN_FLAG == 1:
+        EntryListWithBlinking_Object.CreateGUIobjects(TkinterParent=Tab_MainControls)
+    #################################################
+    #################################################
+
+    #################################################
+    #################################################
+    if CSVdataLogger_OPEN_FLAG == 1:
+        CSVdataLogger_Object.CreateGUIobjects(TkinterParent=Tab_CSVdataLogger)
+    #################################################
+    #################################################
+
+    #################################################
+    #################################################
+    if MyPrint_OPEN_FLAG == 1:
+        MyPrint_Object.CreateGUIobjects(TkinterParent=Tab_MyPrint)
+    #################################################
+    #################################################
 
     ################################################# THIS BLOCK MUST COME 2ND-TO-LAST IN def GUI_Thread() IF USING TABS.
-    root.protocol("WM_DELETE_WINDOW", ExitProgram_Callback)  # Set the callback function for when the window's closed.
-    root.title("test_program_for_FutekForceTorqueReaderUSB520_ReubenPython3Class")
-    root.geometry('%dx%d+%d+%d' % (root_width, root_height, root_Xpos, root_Ypos)) # set the dimensions of the screen and where it is placed
+    #################################################
     root.after(GUI_RootAfterCallbackInterval_Milliseconds, GUI_update_clock)
     root.mainloop()
     #################################################
+    #################################################
 
     #################################################  THIS BLOCK MUST COME LAST IN def GUI_Thread() REGARDLESS OF CODE.
+    #################################################
     root.quit() #Stop the GUI thread, MUST BE CALLED FROM GUI_Thread
     root.destroy() #Close down the GUI thread, MUST BE CALLED FROM GUI_Thread
+    #################################################
     #################################################
 
 ##########################################################################################################
@@ -821,8 +877,8 @@ if __name__ == '__main__':
     global CSVdataLogger_MostRecentDict_Time
     CSVdataLogger_MostRecentDict_Time = -11111.0
 
-    global CSVdataLogger_Object_SetupDict_VariableNamesForHeaderList
-    CSVdataLogger_Object_SetupDict_VariableNamesForHeaderList = ["CurrentTime_MainLoopThread",
+    global CSVdataLogger_SetupDict_VariableNamesForHeaderList
+    CSVdataLogger_SetupDict_VariableNamesForHeaderList = ["CurrentTime_MainLoopThread",
                                                                 "FutekForceTorqueReaderUSB520_MostRecentDict_FTmeasurement_Raw",
                                                                 "FutekForceTorqueReaderUSB520_MostRecentDict_FTmeasurement_Filtered",
                                                                 "FutekForceTorqueReaderUSB520_MostRecentDict_FTmeasurementDerivative_Raw",
@@ -894,24 +950,6 @@ if __name__ == '__main__':
     ##########################################################################################################
     ##########################################################################################################
 
-    ########################################################################################################## KEY GUI LINE
-    ##########################################################################################################
-    ##########################################################################################################
-    if USE_GUI_FLAG == 1:
-        print("Starting GUI thread...")
-        GUI_Thread_ThreadingObject = threading.Thread(target=GUI_Thread)
-        GUI_Thread_ThreadingObject.setDaemon(True) #Should mean that the GUI thread is destroyed automatically when the main thread is destroyed.
-        GUI_Thread_ThreadingObject.start()
-        time.sleep(0.5)  #Allow enough time for 'root' to be created that we can then pass it into other classes.
-    else:
-        root = None
-        Tab_MainControls = None
-        Tab_FutekForceTorqueReaderUSB520 = None
-        Tab_MyPrint = None
-    ##########################################################################################################
-    ##########################################################################################################
-    ##########################################################################################################
-
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
@@ -920,7 +958,6 @@ if __name__ == '__main__':
     #################################################
     global FutekForceTorqueReaderUSB520_GUIparametersDict
     FutekForceTorqueReaderUSB520_GUIparametersDict = dict([("USE_GUI_FLAG", USE_GUI_FLAG and SHOW_IN_GUI_FutekForceTorqueReaderUSB520_FLAG),
-                                                            ("root", Tab_FutekForceTorqueReaderUSB520),
                                                             ("EnableInternal_MyPrint_Flag", 0),
                                                             ("NumberOfPrintLines", 10),
                                                             ("UseBorderAroundThisGuiObjectFlag", 0),
@@ -933,7 +970,7 @@ if __name__ == '__main__':
 
     global FutekForceTorqueReaderUSB520_SetupDict
     FutekForceTorqueReaderUSB520_SetupDict = dict([("GUIparametersDict", FutekForceTorqueReaderUSB520_GUIparametersDict),
-                                                    ("ZeroAndSnapshotData___USE_GUI_FLAG", 0),
+                                                    ("ZeroAndSnapshotData___USE_GUI_FLAG", USE_GUI_FLAG and SHOW_IN_GUI_FutekForceTorqueReaderUSB520_FLAG),
                                                     ("NameToDisplay_UserSet", "FutekForceTorqueReaderUSB520"),
                                                     ("SerialNumber_Desired", "1132494"),
                                                     ("TypeOfBoard_EnglishNameString", "USB520"),
@@ -972,31 +1009,30 @@ if __name__ == '__main__':
 
     #################################################
     #################################################
-    global CSVdataLogger_Object_GUIparametersDict
-    CSVdataLogger_Object_GUIparametersDict = dict([("USE_GUI_FLAG", USE_GUI_FLAG and SHOW_IN_GUI_CSVdataLogger_FLAG),
-                                                                    ("root", Tab_CSVdataLogger), #Tab_MainControls
-                                                                    ("EnableInternal_MyPrint_Flag", 1),
-                                                                    ("NumberOfPrintLines", 10),
-                                                                    ("UseBorderAroundThisGuiObjectFlag", 0),
-                                                                    ("GUI_ROW", GUI_ROW_CSVdataLogger),
-                                                                    ("GUI_COLUMN", GUI_COLUMN_CSVdataLogger),
-                                                                    ("GUI_PADX", GUI_PADX_CSVdataLogger),
-                                                                    ("GUI_PADY", GUI_PADY_CSVdataLogger),
-                                                                    ("GUI_ROWSPAN", GUI_ROWSPAN_CSVdataLogger),
-                                                                    ("GUI_COLUMNSPAN", GUI_COLUMNSPAN_CSVdataLogger)])
+    global CSVdataLogger_GUIparametersDict
+    CSVdataLogger_GUIparametersDict = dict([("USE_GUI_FLAG", USE_GUI_FLAG and SHOW_IN_GUI_CSVdataLogger_FLAG),
+                                            ("EnableInternal_MyPrint_Flag", 1),
+                                            ("NumberOfPrintLines", 10),
+                                            ("UseBorderAroundThisGuiObjectFlag", 0),
+                                            ("GUI_ROW", GUI_ROW_CSVdataLogger),
+                                            ("GUI_COLUMN", GUI_COLUMN_CSVdataLogger),
+                                            ("GUI_PADX", GUI_PADX_CSVdataLogger),
+                                            ("GUI_PADY", GUI_PADY_CSVdataLogger),
+                                            ("GUI_ROWSPAN", GUI_ROWSPAN_CSVdataLogger),
+                                            ("GUI_COLUMNSPAN", GUI_COLUMNSPAN_CSVdataLogger)])
 
-    global CSVdataLogger_Object_SetupDict
-    CSVdataLogger_Object_SetupDict = dict([("GUIparametersDict", CSVdataLogger_Object_GUIparametersDict),
-                                                            ("NameToDisplay_UserSet", "CSVdataLogger"),
-                                                            ("CSVfile_DirectoryPath", "C:\\CSVfiles"),
-                                                            ("FileNamePrefix", "CSV_file_"),
-                                                            ("VariableNamesForHeaderList", CSVdataLogger_Object_SetupDict_VariableNamesForHeaderList),
-                                                            ("MainThread_TimeToSleepEachLoop", 0.002),
-                                                            ("SaveOnStartupFlag", 0)])
+    global CSVdataLogger_SetupDict
+    CSVdataLogger_SetupDict = dict([("GUIparametersDict", CSVdataLogger_GUIparametersDict),
+                                    ("NameToDisplay_UserSet", "CSVdataLogger"),
+                                    ("CSVfile_DirectoryPath", "C:\\CSVfiles"),
+                                    ("FileNamePrefix", "CSV_file_"),
+                                    ("VariableNamesForHeaderList", CSVdataLogger_SetupDict_VariableNamesForHeaderList),
+                                    ("MainThread_TimeToSleepEachLoop", 0.002),
+                                    ("SaveOnStartupFlag", 0)])
 
     if USE_CSVdataLogger_FLAG == 1 and EXIT_PROGRAM_FLAG == 0:
         try:
-            CSVdataLogger_Object = CSVdataLogger_ReubenPython3Class(CSVdataLogger_Object_SetupDict)
+            CSVdataLogger_Object = CSVdataLogger_ReubenPython3Class(CSVdataLogger_SetupDict)
             CSVdataLogger_OPEN_FLAG = CSVdataLogger_Object.OBJECT_CREATED_SUCCESSFULLY_FLAG
 
         except:
@@ -1027,14 +1063,13 @@ if __name__ == '__main__':
     #################################################
     #################################################
     global EntryListWithBlinking_Object_GUIparametersDict
-    EntryListWithBlinking_Object_GUIparametersDict = dict([("root", Tab_MainControls),
-                                                                                ("UseBorderAroundThisGuiObjectFlag", 0),
-                                                                                ("GUI_ROW", GUI_ROW_EntryListWithBlinking),
-                                                                                ("GUI_COLUMN", GUI_COLUMN_EntryListWithBlinking),
-                                                                                ("GUI_PADX", GUI_PADX_EntryListWithBlinking),
-                                                                                ("GUI_PADY", GUI_PADY_EntryListWithBlinking),
-                                                                                ("GUI_ROWSPAN", GUI_ROWSPAN_EntryListWithBlinking),
-                                                                                ("GUI_COLUMNSPAN", GUI_COLUMNSPAN_EntryListWithBlinking)])
+    EntryListWithBlinking_Object_GUIparametersDict = dict([("UseBorderAroundThisGuiObjectFlag", 0),
+                                                        ("GUI_ROW", GUI_ROW_EntryListWithBlinking),
+                                                        ("GUI_COLUMN", GUI_COLUMN_EntryListWithBlinking),
+                                                        ("GUI_PADX", GUI_PADX_EntryListWithBlinking),
+                                                        ("GUI_PADY", GUI_PADY_EntryListWithBlinking),
+                                                        ("GUI_ROWSPAN", GUI_ROWSPAN_EntryListWithBlinking),
+                                                        ("GUI_COLUMNSPAN", GUI_COLUMNSPAN_EntryListWithBlinking)])
 
     global EntryListWithBlinking_Variables_ListOfDicts
     EntryListWithBlinking_Variables_ListOfDicts = [dict([("Name", "FutekForceTorqueReaderUSB520_FTmeasurement_ExponentialSmoothingFilterLambda"),("Type", "float"),("StartingVal", FutekForceTorqueReaderUSB520_FTmeasurement_ExponentialSmoothingFilterLambda),("MinVal", 0.0),("MaxVal", 1.0),("EntryBlinkEnabled", 0),("EntryWidth", EntryWidth),("LabelWidth", LabelWidth),("FontSize", FontSize)]),
@@ -1073,35 +1108,32 @@ if __name__ == '__main__':
 
     #################################################
     #################################################
+    global MyPrint_Object_GUIparametersDict
+    MyPrint_Object_GUIparametersDict = dict([("USE_GUI_FLAG", USE_GUI_FLAG and SHOW_IN_GUI_MyPrint_FLAG),
+                                            ("UseBorderAroundThisGuiObjectFlag", 0),
+                                            ("GUI_ROW", GUI_ROW_MyPrint),
+                                            ("GUI_COLUMN", GUI_COLUMN_MyPrint),
+                                            ("GUI_PADX", GUI_PADX_MyPrint),
+                                            ("GUI_PADY", GUI_PADY_MyPrint),
+                                            ("GUI_ROWSPAN", GUI_ROWSPAN_MyPrint),
+                                            ("GUI_COLUMNSPAN", GUI_COLUMNSPAN_MyPrint)])
+
+    global MyPrint_Object_SetupDict
+    MyPrint_Object_SetupDict = dict([("NumberOfPrintLines", 10),
+                                    ("WidthOfPrintingLabel", 200),
+                                    ("PrintToConsoleFlag", 1),
+                                    ("LogFileNameFullPath", os.getcwd() + "//TestLog.txt"),
+                                    ("GUIparametersDict", MyPrint_Object_GUIparametersDict)])
+
     if USE_MyPrint_FLAG == 1 and EXIT_PROGRAM_FLAG == 0:
+        try:
+            MyPrint_Object = MyPrint_ReubenPython2and3Class(MyPrint_Object_SetupDict)
+            MyPrint_OPEN_FLAG = MyPrint_Object.OBJECT_CREATED_SUCCESSFULLY_FLAG
 
-        global MyPrint_Object_GUIparametersDict
-        MyPrint_Object_GUIparametersDict = dict([("USE_GUI_FLAG", USE_GUI_FLAG and SHOW_IN_GUI_MyPrint_FLAG),
-                                                                        ("root", Tab_MyPrint),
-                                                                        ("UseBorderAroundThisGuiObjectFlag", 0),
-                                                                        ("GUI_ROW", GUI_ROW_MyPrint),
-                                                                        ("GUI_COLUMN", GUI_COLUMN_MyPrint),
-                                                                        ("GUI_PADX", GUI_PADX_MyPrint),
-                                                                        ("GUI_PADY", GUI_PADY_MyPrint),
-                                                                        ("GUI_ROWSPAN", GUI_ROWSPAN_MyPrint),
-                                                                        ("GUI_COLUMNSPAN", GUI_COLUMNSPAN_MyPrint)])
-
-        global MyPrint_Object_SetupDict
-        MyPrint_Object_SetupDict = dict([("NumberOfPrintLines", 10),
-                                                                ("WidthOfPrintingLabel", 200),
-                                                                ("PrintToConsoleFlag", 1),
-                                                                ("LogFileNameFullPath", os.getcwd() + "//TestLog.txt"),
-                                                                ("GUIparametersDict", MyPrint_Object_GUIparametersDict)])
-
-        if USE_MyPrint_FLAG == 1 and EXIT_PROGRAM_FLAG == 0:
-            try:
-                MyPrint_Object = MyPrint_ReubenPython2and3Class(MyPrint_Object_SetupDict)
-                MyPrint_OPEN_FLAG = MyPrint_Object.OBJECT_CREATED_SUCCESSFULLY_FLAG
-
-            except:
-                exceptions = sys.exc_info()[0]
-                print("MyPrint_Object __init__: Exceptions: %s" % exceptions)
-                traceback.print_exc()
+        except:
+            exceptions = sys.exc_info()[0]
+            print("MyPrint_Object __init__: Exceptions: %s" % exceptions)
+            traceback.print_exc()
     #################################################
     #################################################
 
@@ -1310,6 +1342,22 @@ if __name__ == '__main__':
     ##########################################################################################################
     ##########################################################################################################
 
+    ########################################################################################################## KEY GUI LINE
+    ##########################################################################################################
+    ##########################################################################################################
+    if USE_GUI_FLAG == 1 and EXIT_PROGRAM_FLAG == 0:
+        print("Starting GUI thread...")
+        GUI_Thread_ThreadingObject = threading.Thread(target=GUI_Thread, daemon=True) #Daemon=True means that the GUI thread is destroyed automatically when the main thread is destroyed.
+        GUI_Thread_ThreadingObject.start()
+    else:
+        root = None
+        Tab_MainControls = None
+        Tab_FutekForceTorqueReaderUSB520 = None
+        Tab_MyPrint = None
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
@@ -1358,12 +1406,12 @@ if __name__ == '__main__':
                     if FutekForceTorqueReaderUSB520_OPEN_FLAG == 1:
 
                         FutekForceTorqueReaderUSB520_Object.UpdateVariableFilterSettingsFromExternalProgram("FTmeasurement",
-                                                                                                            UseMedianFilterFlag=1,
+                                                                                                            UseMedianFilterFlag=0,
                                                                                                             UseExponentialSmoothingFilterFlag=1,
                                                                                                             ExponentialSmoothingFilterLambda=FutekForceTorqueReaderUSB520_FTmeasurement_ExponentialSmoothingFilterLambda)
 
                         FutekForceTorqueReaderUSB520_Object.UpdateVariableFilterSettingsFromExternalProgram("FTmeasurementDerivative",
-                                                                                                            UseMedianFilterFlag=1,
+                                                                                                            UseMedianFilterFlag=0,
                                                                                                             UseExponentialSmoothingFilterFlag=1,
                                                                                                             ExponentialSmoothingFilterLambda=FutekForceTorqueReaderUSB520_FTmeasurementDerivative_ExponentialSmoothingFilterLambda)
                 ###################################################

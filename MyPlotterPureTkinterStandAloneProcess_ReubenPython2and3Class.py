@@ -6,27 +6,31 @@ reuben.brewer@gmail.com,
 www.reubotics.com
 
 Apache 2 License
-Software Revision Y, 08/08/2025
+Software Revision AA, 12/22/2025
 
-Verified working on: Python 3.11/12 for Windows 10/11 64-bit, Ubuntu 20.04, and Raspberry Pi Bookworm.
+Verified working on: Python 3.11/12/13 for Windows 10/11 64-bit, Ubuntu 20.04, and Raspberry Pi Bookworm.
 '''
 
 __author__ = 'reuben.brewer'
 
-##########################################################################################################
-##########################################################################################################
+##########################################################
+import ReubenGithubCodeModulePaths #Replaces the need to have "ReubenGithubCodeModulePaths.pth" within "C:\Anaconda3\Lib\site-packages", which slows down the start of a Python interpreter if your code directories are in Google Drive.
+ReubenGithubCodeModulePaths.Enable()
+#########################################################
+
+#########################################################
 try:
     from GetCPUandMemoryUsageOfProcessByPID_ReubenPython3Class import *
     GetCPUandMemoryUsageOfProcessByPID_ModuleImportedFlag = 1
 
 except:
+    exceptions = sys.exc_info()[0]
     GetCPUandMemoryUsageOfProcessByPID_ModuleImportedFlag = 0
-    print("Error: the module 'GetCPUandMemoryUsageOfProcessByPID_ReubenPython3Class' cvould not be imported.")
-##########################################################################################################
-##########################################################################################################
+    print("Error: the module 'GetCPUandMemoryUsageOfProcessByPID_ReubenPython3Class' could not be imported. Exceptions: %s" % exceptions)
+    traceback.print_exc()
+#########################################################
 
-##########################################################################################################
-##########################################################################################################
+#########################################################
 import os
 import sys
 import time
@@ -44,25 +48,29 @@ import platform
 import psutil
 import pexpect
 import subprocess
+import re
 import signal  #for CTRLc_HandlerFunction
 import queue as Queue
 from queue import Empty #For draining the queue
+#########################################################
 
+#########################################################
 from tkinter import *
 import tkinter.font as tkFont
 from tkinter import ttk
+#########################################################
 
-##########################################################################################################
+#########################################################
 try:
     import pyautogui
     pyautogui_ModuleImportedFlag = 1
 
 except:
     pyautogui_ModuleImportedFlag = 0
-    print("Error: the module 'pyautogui' cvould not be imported.")
-##########################################################################################################
+    print("Error: the module 'pyautogui' could not be imported.")
+#########################################################
 
-##########################################################################################################
+#########################################################
 import platform
 
 if platform.system() == "Windows":
@@ -70,7 +78,7 @@ if platform.system() == "Windows":
 
     winmm = ctypes.WinDLL('winmm')
     winmm.timeBeginPeriod(1)  # Set minimum timer resolution to 1ms so that time.sleep(0.001) behaves properly.
-##########################################################################################################
+#########################################################
 
 ##########################################################################################################
 ##########################################################################################################
@@ -130,8 +138,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         
         '''
         From: https://docs.python.org/3/library/multiprocessing.html#multiprocessing-programming
-        Spawn
-        The parent process starts a fresh python interpreter process.
+        Spawn: The parent process starts a fresh python interpreter process.
         The child process will only inherit those resources necessary to run the process object’s run() method.
         In particular, unnecessary file descriptors and handles from the parent process will not be inherited.
         Starting a process using this method is rather slow compared to using fork or forkserver.
@@ -192,559 +199,597 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
+    def RemoveLeadingZerosFromString(self, StringInput):
+        OutputString = re.sub(r'([+-])0+(?=\d)', r'\1', StringInput)
+
+        return OutputString
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
     def __ProcessVariablesThatCanNOTbeLiveUpdated(self, SetupDict, PrintInfoForDebuggingFlag = 0):
 
-        pass #Can add variables here later as needed.
+        return 1 #Can add variables here later as needed.
 
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
 
+    ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
     def __ProcessVariablesThatCanBeLiveUpdated(self, SetupDict, PrintInfoForDebuggingFlag = 0):
 
-        ##########################################################################################################
-        ##########################################################################################################
-        ##########################################################################################################
-        self.SetupDict = SetupDict
-        ##########################################################################################################
-        ##########################################################################################################
-        ##########################################################################################################
-
-        ##########################################################################################################
-        ##########################################################################################################
-        ########################################################################################################## UNICORN
-        self.RootGeometryHasBeenModifiedFlag = 1 #By default, ALWAYS clear the graph when we enter this function.
-        ##########################################################################################################
-        ##########################################################################################################
-        ##########################################################################################################
-
-        ##########################################################################################################
-        ##########################################################################################################
-        ##########################################################################################################
-        if "GUIparametersDict" in SetupDict:
-            GUIparametersDict = SetupDict["GUIparametersDict"]
-
-            ##########################################
-            ##########################################
-            if "GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents" in GUIparametersDict:
-                self.GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents", GUIparametersDict["GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents"], 0.0, 1000.0))
-            else:
-                self.GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents = 30  # Will get us around 30Hz actual when plottting 2 curves with 100 data points each and 35 tick marks on each axis
-
-            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents: " + str(self.GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents))
-            ##########################################
-            ##########################################
-
-            ##########################################
-            ##########################################
-            if "EnableInternal_MyPrint_Flag" in GUIparametersDict:
-                self.EnableInternal_MyPrint_Flag = self.PassThrough0and1values_ExitProgramOtherwise("EnableInternal_MyPrint_Flag", GUIparametersDict["EnableInternal_MyPrint_Flag"])
-            else:
-                self.EnableInternal_MyPrint_Flag = 0
-
-            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: EnableInternal_MyPrint_Flag: " + str(self.EnableInternal_MyPrint_Flag))
-            ##########################################
-            ##########################################
-
-            ##########################################
-            ##########################################
-            if "PrintToConsoleFlag" in GUIparametersDict:
-                self.PrintToConsoleFlag = self.PassThrough0and1values_ExitProgramOtherwise("PrintToConsoleFlag", GUIparametersDict["PrintToConsoleFlag"])
-            else:
-                self.PrintToConsoleFlag = 1
-
-            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: PrintToConsoleFlag: " + str(self.PrintToConsoleFlag))
-            ##########################################
-            ##########################################
-
-            ##########################################
-            ##########################################
-            if "NumberOfPrintLines" in GUIparametersDict:
-                self.NumberOfPrintLines = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("NumberOfPrintLines", GUIparametersDict["NumberOfPrintLines"], 0.0, 50.0))
-            else:
-                self.NumberOfPrintLines = 10
-
-            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: NumberOfPrintLines: " + str(self.NumberOfPrintLines))
-            ##########################################
-            ##########################################
-
-            ##########################################
-            ##########################################
-            if "GraphCanvasWidth" in GUIparametersDict:
-                self.GraphCanvasWidth = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GraphCanvasWidth", GUIparametersDict["GraphCanvasWidth"], 480.0, 1000000.0)
-            else:
-                self.GraphCanvasWidth = 640.0
-
-            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GraphCanvasWidth: " + str(self.GraphCanvasWidth))
-            ##########################################
-            ##########################################
-
-            ##########################################
-            ##########################################
-            if "GraphCanvasHeight" in GUIparametersDict:
-                self.GraphCanvasHeight = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GraphCanvasHeight", GUIparametersDict["GraphCanvasHeight"], 240.0, 1000000.0)
-            else:
-                self.GraphCanvasHeight = 480.0
-
-            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GraphCanvasHeight: " + str(self.GraphCanvasHeight))
-            ##########################################
-            ##########################################
-
-            ##########################################
-            ##########################################
-            if "GraphCanvasWindowTitle" in GUIparametersDict:
-                self.GraphCanvasWindowTitle = str(GUIparametersDict["GraphCanvasWindowTitle"])
-            else:
-                self.GraphCanvasWindowTitle = "MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class"
-
-            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GraphCanvasWindowTitle: " + self.GraphCanvasWindowTitle)
-            ##########################################
-            ##########################################
-
-            ##########################################
-            ##########################################
-            if "GraphCanvasWindowStartingX" in GUIparametersDict:
-                self.GraphCanvasWindowStartingX = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GraphCanvasWindowStartingX", GUIparametersDict["GraphCanvasWindowStartingX"], 0.0, 1000000.0))
-            else:
-                self.GraphCanvasWindowStartingX = 0.0
-
-            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GraphCanvasWindowStartingX: " + str(self.GraphCanvasWindowStartingX))
-            ##########################################
-            ##########################################
-
-            ##########################################
-            ##########################################
-            if "GraphCanvasWindowStartingY" in GUIparametersDict:
-                self.GraphCanvasWindowStartingY = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GraphCanvasWindowStartingY", GUIparametersDict["GraphCanvasWindowStartingY"], 0.0, 1000000.0))
-            else:
-                self.GraphCanvasWindowStartingY = 0.0
-
-            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GraphCanvasWindowStartingY: " + str(self.GraphCanvasWindowStartingY))
-            ##########################################
-            ##########################################
-
-        ##########################################################################################################
-        ##########################################################################################################
-        ##########################################################################################################
-
-        ##########################################################################################################
-        ##########################################################################################################
-        ##########################################################################################################
-
-        ##########################################
-        ##########################################
-        if "ParentPID" in SetupDict:
-            self.ParentPID = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("ParentPID", SetupDict["ParentPID"], 0.0, 100000000.0))
-        else:
-            self.ParentPID = -11111
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: ParentPID: " + str(self.ParentPID))
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "SmallTextSize" in SetupDict:
-            self.SmallTextSize = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("SmallTextSize", SetupDict["SmallTextSize"], 7, 20))
-        else:
-            self.SmallTextSize = 7
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: SmallTextSize: " + str(self.SmallTextSize))
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "LargeTextSize" in SetupDict:
-            self.LargeTextSize = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("LargeTextSize", SetupDict["LargeTextSize"], 7, 20))
-        else:
-            self.LargeTextSize = 12
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: LargeTextSize: " + str(self.LargeTextSize))
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "NumberOfDataPointToPlot" in SetupDict:
-            self.NumberOfDataPointToPlot = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("NumberOfDataPointToPlot", SetupDict["NumberOfDataPointToPlot"], 0.0, 1000000))
-        else:
-            self.NumberOfDataPointToPlot = 10
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: NumberOfDataPointToPlot: " + str(self.NumberOfDataPointToPlot))
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "XaxisNumberOfTickMarks" in SetupDict:
-            self.XaxisNumberOfTickMarks = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("XaxisNumberOfTickMarks", SetupDict["XaxisNumberOfTickMarks"], 0.0, 1000))
-        else:
-            self.XaxisNumberOfTickMarks = 30
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: XaxisNumberOfTickMarks: " + str(self.XaxisNumberOfTickMarks))
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "YaxisNumberOfTickMarks" in SetupDict:
-            self.YaxisNumberOfTickMarks = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("YaxisNumberOfTickMarks", SetupDict["YaxisNumberOfTickMarks"], 0.0, 1000))
-        else:
-            self.YaxisNumberOfTickMarks = 30
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: YaxisNumberOfTickMarks: " + str(self.YaxisNumberOfTickMarks))
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "XaxisNumberOfDecimalPlacesForLabels" in SetupDict:
-            self.XaxisNumberOfDecimalPlacesForLabels = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("XaxisNumberOfDecimalPlacesForLabels", SetupDict["XaxisNumberOfDecimalPlacesForLabels"], 0.0, 3.0))
-        else:
-            self.XaxisNumberOfDecimalPlacesForLabels = 1
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: XaxisNumberOfDecimalPlacesForLabels: " + str(self.XaxisNumberOfDecimalPlacesForLabels))
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "YaxisNumberOfDecimalPlacesForLabels" in SetupDict:
-            self.YaxisNumberOfDecimalPlacesForLabels = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("YaxisNumberOfDecimalPlacesForLabels", SetupDict["YaxisNumberOfDecimalPlacesForLabels"], 0.0, 3.0))
-        else:
-            self.YaxisNumberOfDecimalPlacesForLabels = 1
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: YaxisNumberOfDecimalPlacesForLabels: " + str(self.YaxisNumberOfDecimalPlacesForLabels))
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "X_min" in SetupDict:
-            self.X_min = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("X_min", SetupDict["X_min"], -1000000000000.0, 1000000000000.0)
-        else:
-            self.X_min = 0.0
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: X_min: " + str(self.X_min))
-
-        self.X_min_StoredFrom__ProcessVariablesThatCanBeLiveUpdated = self.X_min
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "X_max" in SetupDict:
-            self.X_max = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("X_max", SetupDict["X_max"], -1000000000000.0, 1000000000000.0)
-        else:
-            self.X_max = 10.0
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: X_max: " + str(self.X_max))
-
-        self.X_max_StoredFrom__ProcessVariablesThatCanBeLiveUpdated = self.X_max
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "Y_min" in SetupDict:
-            self.Y_min = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("Y_min", SetupDict["Y_min"], -1000000000000.0, 1000000000000.0)
-        else:
-            self.Y_min = -10.0
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: Y_min: " + str(self.Y_min))
-
-        self.Y_min_StoredFrom__ProcessVariablesThatCanBeLiveUpdated = self.Y_min
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "Y_max" in SetupDict:
-            self.Y_max = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("Y_max", SetupDict["Y_max"], -1000000000000.0, 1000000000000.0)
-        else:
-            self.Y_max = 10.0
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: Y_max: " + str(self.Y_max))
-
-        self.Y_max_StoredFrom__ProcessVariablesThatCanBeLiveUpdated = self.Y_max
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "XaxisAutoscaleFlag" in SetupDict:
-            self.XaxisAutoscaleFlag = self.PassThrough0and1values_ExitProgramOtherwise("XaxisAutoscaleFlag", SetupDict["XaxisAutoscaleFlag"])
-        else:
-            self.XaxisAutoscaleFlag = 1
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: XaxisAutoscaleFlag: " + str(self.XaxisAutoscaleFlag))
-
-        if self.XaxisAutoscaleFlag == 1:
-            self.X_min = 0  # Have to override any other X_min, X_max values that may have been passed-in in the SetupDict
-            self.X_max = 0.1  # Have to override any other X_min, X_max values that may have been passed-in in the SetupDict
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "YaxisAutoscaleFlag" in SetupDict:
-            self.YaxisAutoscaleFlag = self.PassThrough0and1values_ExitProgramOtherwise("YaxisAutoscaleFlag", SetupDict["YaxisAutoscaleFlag"])
-        else:
-            self.YaxisAutoscaleFlag = 1
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: YaxisAutoscaleFlag: " + str(self.YaxisAutoscaleFlag))
-
-        if self.YaxisAutoscaleFlag == 1:
-            self.Y_min = 0  # Have to override any other X_min, X_max values that may have been passed-in in the SetupDict
-            self.Y_max = 0.1  # Have to override any other X_min, X_max values that may have been passed-in in the SetupDict
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "XaxisDrawnAtBottomOfGraph" in SetupDict:
-            self.XaxisDrawnAtBottomOfGraph = self.PassThrough0and1values_ExitProgramOtherwise("XaxisDrawnAtBottomOfGraph", SetupDict["XaxisDrawnAtBottomOfGraph"])
-        else:
-            self.XaxisDrawnAtBottomOfGraph = 1
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: XaxisDrawnAtBottomOfGraph: " + str(self.XaxisDrawnAtBottomOfGraph))
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "ShowLegendFlag" in SetupDict:
-            self.ShowLegendFlag = self.PassThrough0and1values_ExitProgramOtherwise("ShowLegendFlag", SetupDict["ShowLegendFlag"])
-        else:
-            self.ShowLegendFlag = 0
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: ShowLegendFlag: " + str(self.ShowLegendFlag))
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "XaxisLabelString" in SetupDict:
-            self.XaxisLabelString = str(SetupDict["XaxisLabelString"])
-        else:
-            self.XaxisLabelString = ""
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: XaxisLabelString: " + str(self.XaxisLabelString))
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "YaxisLabelString" in SetupDict:
-            self.YaxisLabelString = str(SetupDict["YaxisLabelString"])
-        else:
-            self.YaxisLabelString = ""
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: YaxisLabelString: " + str(self.YaxisLabelString))
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-
-        ##########################################
-        if "CurvesToPlotNamesAndColorsDictOfLists" in SetupDict:
-            self.CurvesToPlotNamesAndColorsDictOfLists = SetupDict["CurvesToPlotNamesAndColorsDictOfLists"]
-        else:
-            self.CurvesToPlotNamesAndColorsDictOfLists = dict([(list(), "NameList"), (list(), "ColorList")])
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: CurvesToPlotNamesAndColorsDictOfLists: " + str(self.CurvesToPlotNamesAndColorsDictOfLists))
-        ##########################################
-
-        ##########################################
-        self.CurvesToPlotDictOfDicts = dict()
-
-        if "NameList" in self.CurvesToPlotNamesAndColorsDictOfLists:
-            NameList = self.CurvesToPlotNamesAndColorsDictOfLists["NameList"]
-
-            if "ColorList" in self.CurvesToPlotNamesAndColorsDictOfLists:
-                ColorList = self.CurvesToPlotNamesAndColorsDictOfLists["ColorList"]
-
-                if "MarkerSizeList" in self.CurvesToPlotNamesAndColorsDictOfLists:
-                    MarkerSizeList = self.CurvesToPlotNamesAndColorsDictOfLists["MarkerSizeList"]
+        try:
+
+            ##########################################################################################################
+            ##########################################################################################################
+            ##########################################################################################################
+            self.SetupDict = SetupDict
+            ##########################################################################################################
+            ##########################################################################################################
+            ##########################################################################################################
+
+            ##########################################################################################################
+            ##########################################################################################################
+            ########################################################################################################## UNICORN
+            self.RootGeometryHasBeenModifiedFlag = 1 #By default, ALWAYS clear the graph when we enter this function.
+            ##########################################################################################################
+            ##########################################################################################################
+            ##########################################################################################################
+
+            ##########################################################################################################
+            ##########################################################################################################
+            ##########################################################################################################
+            if "GUIparametersDict" in SetupDict:
+                GUIparametersDict = SetupDict["GUIparametersDict"]
+
+                ##########################################
+                ##########################################
+                if "GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents" in GUIparametersDict:
+                    self.GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents", GUIparametersDict["GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents"], 0.0, 1000.0))
                 else:
-                    MarkerSizeList = [3] * len(NameList)
+                    self.GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents = 30  # Will get us around 30Hz actual when plottting 2 curves with 100 data points each and 35 tick marks on each axis
 
-                if "LineWidthList" in self.CurvesToPlotNamesAndColorsDictOfLists:
-                    LineWidthList = self.CurvesToPlotNamesAndColorsDictOfLists["LineWidthList"]
+                if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents: " + str(self.GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents))
+                ##########################################
+                ##########################################
+
+                ##########################################
+                ##########################################
+                if "EnableInternal_MyPrint_Flag" in GUIparametersDict:
+                    self.EnableInternal_MyPrint_Flag = self.PassThrough0and1values_ExitProgramOtherwise("EnableInternal_MyPrint_Flag", GUIparametersDict["EnableInternal_MyPrint_Flag"])
                 else:
-                    LineWidthList = [3] * len(NameList)
+                    self.EnableInternal_MyPrint_Flag = 0
 
-                if "IncludeInXaxisAutoscaleCalculationList" in self.CurvesToPlotNamesAndColorsDictOfLists:
-                    IncludeInXaxisAutoscaleCalculationList = self.CurvesToPlotNamesAndColorsDictOfLists["IncludeInXaxisAutoscaleCalculationList"]
+                if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: EnableInternal_MyPrint_Flag: " + str(self.EnableInternal_MyPrint_Flag))
+                ##########################################
+                ##########################################
+
+                ##########################################
+                ##########################################
+                if "PrintToConsoleFlag" in GUIparametersDict:
+                    self.PrintToConsoleFlag = self.PassThrough0and1values_ExitProgramOtherwise("PrintToConsoleFlag", GUIparametersDict["PrintToConsoleFlag"])
                 else:
-                    IncludeInXaxisAutoscaleCalculationList = [1] * len(NameList)
+                    self.PrintToConsoleFlag = 1
 
-                if "IncludeInYaxisAutoscaleCalculationList" in self.CurvesToPlotNamesAndColorsDictOfLists:
-                    IncludeInYaxisAutoscaleCalculationList = self.CurvesToPlotNamesAndColorsDictOfLists["IncludeInYaxisAutoscaleCalculationList"]
+                if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: PrintToConsoleFlag: " + str(self.PrintToConsoleFlag))
+                ##########################################
+                ##########################################
+
+                ##########################################
+                ##########################################
+                if "NumberOfPrintLines" in GUIparametersDict:
+                    self.NumberOfPrintLines = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("NumberOfPrintLines", GUIparametersDict["NumberOfPrintLines"], 0.0, 50.0))
                 else:
-                    IncludeInYaxisAutoscaleCalculationList = [1] * len(NameList)
+                    self.NumberOfPrintLines = 10
 
-                if len(NameList) == len(ColorList) \
-                        and len(NameList) == len(MarkerSizeList) \
-                        and len(NameList) == len(LineWidthList) \
-                        and len(NameList) == len(IncludeInXaxisAutoscaleCalculationList) \
-                        and len(NameList) == len(IncludeInYaxisAutoscaleCalculationList):
+                if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: NumberOfPrintLines: " + str(self.NumberOfPrintLines))
+                ##########################################
+                ##########################################
 
-                    for counter, element in enumerate(NameList):
-                        self.AddCurveToPlot(NameList[counter],
-                                            ColorList[counter],
-                                            MarkerSizeList[counter],
-                                            LineWidthList[counter],
-                                            IncludeInXaxisAutoscaleCalculationList[counter],
-                                            IncludeInYaxisAutoscaleCalculationList[counter])
-
+                ##########################################
+                ##########################################
+                if "GraphCanvasWidth" in GUIparametersDict:
+                    self.GraphCanvasWidth = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GraphCanvasWidth", GUIparametersDict["GraphCanvasWidth"], 480.0, 1000000.0)
                 else:
-                    print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: Error, 'NameList','CurveList','MarkerSizeList', and 'LineWidthList' must be the same length in self.CurvesToPlotNamesAndColorsDictOfLists.")
-                    return
+                    self.GraphCanvasWidth = 640.0
+
+                if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: GraphCanvasWidth: " + str(self.GraphCanvasWidth))
+                ##########################################
+                ##########################################
+
+                ##########################################
+                ##########################################
+                if "GraphCanvasHeight" in GUIparametersDict:
+                    self.GraphCanvasHeight = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GraphCanvasHeight", GUIparametersDict["GraphCanvasHeight"], 240.0, 1000000.0)
+                else:
+                    self.GraphCanvasHeight = 480.0
+
+                if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: GraphCanvasHeight: " + str(self.GraphCanvasHeight))
+                ##########################################
+                ##########################################
+
+                ##########################################
+                ##########################################
+                if "GraphCanvasWindowTitle" in GUIparametersDict:
+                    self.GraphCanvasWindowTitle = str(GUIparametersDict["GraphCanvasWindowTitle"])
+                else:
+                    self.GraphCanvasWindowTitle = "MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class"
+
+                if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: GraphCanvasWindowTitle: " + self.GraphCanvasWindowTitle)
+                ##########################################
+                ##########################################
+
+                ##########################################
+                ##########################################
+                if "GraphCanvasWindowStartingX" in GUIparametersDict:
+                    self.GraphCanvasWindowStartingX = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GraphCanvasWindowStartingX", GUIparametersDict["GraphCanvasWindowStartingX"], 0.0, 1000000.0))
+                else:
+                    self.GraphCanvasWindowStartingX = 0.0
+
+                if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: GraphCanvasWindowStartingX: " + str(self.GraphCanvasWindowStartingX))
+                ##########################################
+                ##########################################
+
+                ##########################################
+                ##########################################
+                if "GraphCanvasWindowStartingY" in GUIparametersDict:
+                    self.GraphCanvasWindowStartingY = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GraphCanvasWindowStartingY", GUIparametersDict["GraphCanvasWindowStartingY"], 0.0, 1000000.0))
+                else:
+                    self.GraphCanvasWindowStartingY = 0.0
+
+                if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: GraphCanvasWindowStartingY: " + str(self.GraphCanvasWindowStartingY))
+                ##########################################
+                ##########################################
+
+            ##########################################################################################################
+            ##########################################################################################################
+            ##########################################################################################################
+
+            ##########################################################################################################
+            ##########################################################################################################
+            ##########################################################################################################
+
+            ##########################################
+            ##########################################
+            if "ParentPID" in SetupDict:
+                self.ParentPID = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("ParentPID", SetupDict["ParentPID"], 0.0, 100000000.0))
             else:
-                print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: Error, 'CurveList' key must be in self.CurvesToPlotNamesAndColorsDictOfLists.")
-                return
-        else:
-            print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: Error, 'NameList' key must be in self.CurvesToPlotNamesAndColorsDictOfLists.")
-            return
-        ##########################################
+                self.ParentPID = -11111
 
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        self.AxesAllLines_IDforCreateLine = [-1]*(1 + 1 + self.XaxisNumberOfTickMarks + self.YaxisNumberOfTickMarks)
-        self.AxesAllText_IDforCreateText = [-1]*(1 + 1 + self.XaxisNumberOfTickMarks + self.YaxisNumberOfTickMarks + len(self.CurvesToPlotNamesAndColorsDictOfLists["NameList"])) #Adding in the legend text
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess" in SetupDict:
-            self.WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess",
-                                                                                                                                                   SetupDict["WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess"], 0.0, 1000.0)
-        else:
-            self.WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess = 0.0
-
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess: " + str(self.WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess))
-        ##########################################
-        ##########################################
-
-        ##########################################
-        ##########################################
-        if "StandAlonePlottingProcess_TimeToSleepEachLoop" in SetupDict:
-
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: ParentPID: " + str(self.ParentPID))
             ##########################################
-            if self.OSnameStr == "windows":
-                self.StandAlonePlottingProcess_TimeToSleepEachLoop = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("StandAlonePlottingProcess_TimeToSleepEachLoop", SetupDict["StandAlonePlottingProcess_TimeToSleepEachLoop"], 0.001, 1.0)
             ##########################################
 
             ##########################################
-            elif self.OSnameStr == "pi":
-                self.StandAlonePlottingProcess_TimeToSleepEachLoop = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("StandAlonePlottingProcess_TimeToSleepEachLoop", SetupDict["StandAlonePlottingProcess_TimeToSleepEachLoop"], 0.005, 1.0)  # Pi can't handle below 0.005
             ##########################################
-
-            ##########################################
+            if "SmallTextSize" in SetupDict:
+                self.SmallTextSize = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("SmallTextSize", SetupDict["SmallTextSize"], 7, 20))
             else:
-                self.StandAlonePlottingProcess_TimeToSleepEachLoop = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("StandAlonePlottingProcess_TimeToSleepEachLoop", SetupDict["StandAlonePlottingProcess_TimeToSleepEachLoop"], 0.001, 1.0)
+                self.SmallTextSize = 7
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: SmallTextSize: " + str(self.SmallTextSize))
+            ##########################################
             ##########################################
 
-        else:
-            self.StandAlonePlottingProcess_TimeToSleepEachLoop = 0.030
+            ##########################################
+            ##########################################
+            if "LargeTextSize" in SetupDict:
+                self.LargeTextSize = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("LargeTextSize", SetupDict["LargeTextSize"], 7, 20))
+            else:
+                self.LargeTextSize = 12
 
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: StandAlonePlottingProcess_TimeToSleepEachLoop: " + str(self.StandAlonePlottingProcess_TimeToSleepEachLoop))
-        ##########################################
-        ##########################################
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: LargeTextSize: " + str(self.LargeTextSize))
+            ##########################################
+            ##########################################
 
-        ##########################################
-        ##########################################
-        if "AxisMinMaxEpsilon" in SetupDict:
-            self.AxisMinMaxEpsilon = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("AxisMinMaxEpsilon", SetupDict["AxisMinMaxEpsilon"], 0.000001, 1000.0)
-        else:
-            self.AxisMinMaxEpsilon = 0.000001
+            ##########################################
+            ##########################################
+            if "NumberOfDataPointToPlot" in SetupDict:
+                self.NumberOfDataPointToPlot = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("NumberOfDataPointToPlot", SetupDict["NumberOfDataPointToPlot"], 0.0, 1000000))
+            else:
+                self.NumberOfDataPointToPlot = 10
 
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: AxisMinMaxEpsilon: " + str(self.AxisMinMaxEpsilon))
-        ##########################################
-        ##########################################
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: NumberOfDataPointToPlot: " + str(self.NumberOfDataPointToPlot))
+            ##########################################
+            ##########################################
 
-        ##########################################
-        ##########################################
-        if "GraphNumberOfLeadingZeros" in SetupDict:
-            self.GraphNumberOfLeadingZeros = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GraphNumberOfLeadingZeros", SetupDict["GraphNumberOfLeadingZeros"], 0.0, 10.0))
-        else:
-            self.GraphNumberOfLeadingZeros = 2
+            ##########################################
+            ##########################################
+            if "XaxisNumberOfTickMarks" in SetupDict:
+                self.XaxisNumberOfTickMarks = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("XaxisNumberOfTickMarks", SetupDict["XaxisNumberOfTickMarks"], 0.0, 1000))
+            else:
+                self.XaxisNumberOfTickMarks = 30
 
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GraphNumberOfLeadingZeros: " + str(self.GraphNumberOfLeadingZeros))
-        ##########################################
-        ##########################################
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: XaxisNumberOfTickMarks: " + str(self.XaxisNumberOfTickMarks))
+            ##########################################
+            ##########################################
 
-        ##########################################
-        ##########################################
-        if "GraphNumberOfDecimalPlaces" in SetupDict:
-            self.GraphNumberOfDecimalPlaces = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GraphNumberOfDecimalPlaces", SetupDict["GraphNumberOfDecimalPlaces"], 0.0, 10.0))
-        else:
-            self.GraphNumberOfDecimalPlaces = 5
+            ##########################################
+            ##########################################
+            if "YaxisNumberOfTickMarks" in SetupDict:
+                self.YaxisNumberOfTickMarks = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("YaxisNumberOfTickMarks", SetupDict["YaxisNumberOfTickMarks"], 0.0, 1000))
+            else:
+                self.YaxisNumberOfTickMarks = 30
 
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: GraphNumberOfDecimalPlaces: " + str(self.GraphNumberOfDecimalPlaces))
-        ##########################################
-        ##########################################
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: YaxisNumberOfTickMarks: " + str(self.YaxisNumberOfTickMarks))
+            ##########################################
+            ##########################################
 
-        ##########################################
-        ##########################################
-        if "SavePlot_DirectoryPath" in SetupDict:
-            self.SavePlot_DirectoryPath = str(SetupDict["SavePlot_DirectoryPath"])
-        else:
-            self.SavePlot_DirectoryPath = os.path.join(os.getcwd(), "SavedImages")
+            ##########################################
+            ##########################################
+            if "XaxisNumberOfDecimalPlacesForLabels" in SetupDict:
+                self.XaxisNumberOfDecimalPlacesForLabels = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("XaxisNumberOfDecimalPlacesForLabels", SetupDict["XaxisNumberOfDecimalPlacesForLabels"], 0.0, 3.0))
+            else:
+                self.XaxisNumberOfDecimalPlacesForLabels = 1
 
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: SavePlot_DirectoryPath: " + str(self.SavePlot_DirectoryPath))
-        ##########################################
-        ##########################################
-        
-        ##########################################
-        ##########################################
-        if "KeepPlotterWindowAlwaysOnTopFlag" in SetupDict:
-            self.KeepPlotterWindowAlwaysOnTopFlag = self.PassThrough0and1values_ExitProgramOtherwise("KeepPlotterWindowAlwaysOnTopFlag", SetupDict["KeepPlotterWindowAlwaysOnTopFlag"])
-        else:
-            self.KeepPlotterWindowAlwaysOnTopFlag = 0
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: XaxisNumberOfDecimalPlacesForLabels: " + str(self.XaxisNumberOfDecimalPlacesForLabels))
+            ##########################################
+            ##########################################
 
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: KeepPlotterWindowAlwaysOnTopFlag: " + str(self.KeepPlotterWindowAlwaysOnTopFlag))
-        ##########################################
-        ##########################################
+            ##########################################
+            ##########################################
+            if "YaxisNumberOfDecimalPlacesForLabels" in SetupDict:
+                self.YaxisNumberOfDecimalPlacesForLabels = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("YaxisNumberOfDecimalPlacesForLabels", SetupDict["YaxisNumberOfDecimalPlacesForLabels"], 0.0, 3.0))
+            else:
+                self.YaxisNumberOfDecimalPlacesForLabels = 1
 
-        ##########################################
-        ##########################################
-        if "RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag" in SetupDict:
-            self.RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag = self.PassThrough0and1values_ExitProgramOtherwise("RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag", SetupDict["RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag"])
-        else:
-            self.RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag = 0
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: YaxisNumberOfDecimalPlacesForLabels: " + str(self.YaxisNumberOfDecimalPlacesForLabels))
+            ##########################################
+            ##########################################
 
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag: " + str(self.RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag))
-        ##########################################
-        ##########################################
-        
-        ##########################################
-        ##########################################
-        if "AllowResizingOfWindowFlag" in SetupDict:
-            self.AllowResizingOfWindowFlag = self.PassThrough0and1values_ExitProgramOtherwise("AllowResizingOfWindowFlag", SetupDict["AllowResizingOfWindowFlag"])
-        else:
-            self.AllowResizingOfWindowFlag = 1
+            ##########################################
+            ##########################################
+            if "X_min" in SetupDict:
+                self.X_min = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("X_min", SetupDict["X_min"], -1000000000000.0, 1000000000000.0)
+            else:
+                self.X_min = 0.0
 
-        if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: AllowResizingOfWindowFlag: " + str(self.AllowResizingOfWindowFlag))
-        ##########################################
-        ##########################################
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: X_min: " + str(self.X_min))
+
+            self.X_min_StoredFrom__ProcessVariablesThatCanBeLiveUpdated = self.X_min
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "X_max" in SetupDict:
+                self.X_max = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("X_max", SetupDict["X_max"], -1000000000000.0, 1000000000000.0)
+            else:
+                self.X_max = 10.0
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: X_max: " + str(self.X_max))
+
+            self.X_max_StoredFrom__ProcessVariablesThatCanBeLiveUpdated = self.X_max
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "Y_min" in SetupDict:
+                self.Y_min = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("Y_min", SetupDict["Y_min"], -1000000000000.0, 1000000000000.0)
+            else:
+                self.Y_min = -10.0
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: Y_min: " + str(self.Y_min))
+
+            self.Y_min_StoredFrom__ProcessVariablesThatCanBeLiveUpdated = self.Y_min
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "Y_max" in SetupDict:
+                self.Y_max = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("Y_max", SetupDict["Y_max"], -1000000000000.0, 1000000000000.0)
+            else:
+                self.Y_max = 10.0
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: Y_max: " + str(self.Y_max))
+
+            self.Y_max_StoredFrom__ProcessVariablesThatCanBeLiveUpdated = self.Y_max
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "XaxisAutoscaleFlag" in SetupDict:
+                self.XaxisAutoscaleFlag = self.PassThrough0and1values_ExitProgramOtherwise("XaxisAutoscaleFlag", SetupDict["XaxisAutoscaleFlag"])
+            else:
+                self.XaxisAutoscaleFlag = 1
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: XaxisAutoscaleFlag: " + str(self.XaxisAutoscaleFlag))
+
+            if self.XaxisAutoscaleFlag == 1:
+                self.X_min = 0  # Have to override any other X_min, X_max values that may have been passed-in in the SetupDict
+                self.X_max = 0.1  # Have to override any other X_min, X_max values that may have been passed-in in the SetupDict
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "YaxisAutoscaleFlag" in SetupDict:
+                self.YaxisAutoscaleFlag = self.PassThrough0and1values_ExitProgramOtherwise("YaxisAutoscaleFlag", SetupDict["YaxisAutoscaleFlag"])
+            else:
+                self.YaxisAutoscaleFlag = 1
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: YaxisAutoscaleFlag: " + str(self.YaxisAutoscaleFlag))
+
+            if self.YaxisAutoscaleFlag == 1:
+                self.Y_min = 0  # Have to override any other X_min, X_max values that may have been passed-in in the SetupDict
+                self.Y_max = 0.1  # Have to override any other X_min, X_max values that may have been passed-in in the SetupDict
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "XaxisDrawnAtBottomOfGraph" in SetupDict:
+                self.XaxisDrawnAtBottomOfGraph = self.PassThrough0and1values_ExitProgramOtherwise("XaxisDrawnAtBottomOfGraph", SetupDict["XaxisDrawnAtBottomOfGraph"])
+            else:
+                self.XaxisDrawnAtBottomOfGraph = 1
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: XaxisDrawnAtBottomOfGraph: " + str(self.XaxisDrawnAtBottomOfGraph))
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "ShowLegendFlag" in SetupDict:
+                self.ShowLegendFlag = self.PassThrough0and1values_ExitProgramOtherwise("ShowLegendFlag", SetupDict["ShowLegendFlag"])
+            else:
+                self.ShowLegendFlag = 0
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: ShowLegendFlag: " + str(self.ShowLegendFlag))
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "XaxisLabelString" in SetupDict:
+                self.XaxisLabelString = str(SetupDict["XaxisLabelString"])
+            else:
+                self.XaxisLabelString = ""
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: XaxisLabelString: " + str(self.XaxisLabelString))
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "YaxisLabelString" in SetupDict:
+                self.YaxisLabelString = str(SetupDict["YaxisLabelString"])
+            else:
+                self.YaxisLabelString = ""
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: YaxisLabelString: " + str(self.YaxisLabelString))
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+
+            ##########################################
+            if "CurvesToPlotNamesAndColorsDictOfLists" in SetupDict:
+                self.CurvesToPlotNamesAndColorsDictOfLists = SetupDict["CurvesToPlotNamesAndColorsDictOfLists"]
+            else:
+                self.CurvesToPlotNamesAndColorsDictOfLists = dict([(list(), "NameList"), (list(), "ColorList")])
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: CurvesToPlotNamesAndColorsDictOfLists: " + str(self.CurvesToPlotNamesAndColorsDictOfLists))
+            ##########################################
+
+            ##########################################
+            self.CurvesToPlotDictOfDicts = dict()
+
+            if "NameList" in self.CurvesToPlotNamesAndColorsDictOfLists:
+                NameList = self.CurvesToPlotNamesAndColorsDictOfLists["NameList"]
+
+                if "ColorList" in self.CurvesToPlotNamesAndColorsDictOfLists:
+                    ColorList = self.CurvesToPlotNamesAndColorsDictOfLists["ColorList"]
+
+                    if "MarkerSizeList" in self.CurvesToPlotNamesAndColorsDictOfLists:
+                        MarkerSizeList = self.CurvesToPlotNamesAndColorsDictOfLists["MarkerSizeList"]
+                    else:
+                        MarkerSizeList = [3] * len(NameList)
+
+                    if "LineWidthList" in self.CurvesToPlotNamesAndColorsDictOfLists:
+                        LineWidthList = self.CurvesToPlotNamesAndColorsDictOfLists["LineWidthList"]
+                    else:
+                        LineWidthList = [3] * len(NameList)
+
+                    if "IncludeInXaxisAutoscaleCalculationList" in self.CurvesToPlotNamesAndColorsDictOfLists:
+                        IncludeInXaxisAutoscaleCalculationList = self.CurvesToPlotNamesAndColorsDictOfLists["IncludeInXaxisAutoscaleCalculationList"]
+                    else:
+                        IncludeInXaxisAutoscaleCalculationList = [1] * len(NameList)
+
+                    if "IncludeInYaxisAutoscaleCalculationList" in self.CurvesToPlotNamesAndColorsDictOfLists:
+                        IncludeInYaxisAutoscaleCalculationList = self.CurvesToPlotNamesAndColorsDictOfLists["IncludeInYaxisAutoscaleCalculationList"]
+                    else:
+                        IncludeInYaxisAutoscaleCalculationList = [1] * len(NameList)
+
+                    if len(NameList) == len(ColorList) \
+                            and len(NameList) == len(MarkerSizeList) \
+                            and len(NameList) == len(LineWidthList) \
+                            and len(NameList) == len(IncludeInXaxisAutoscaleCalculationList) \
+                            and len(NameList) == len(IncludeInYaxisAutoscaleCalculationList):
+
+                        for counter, element in enumerate(NameList):
+                            self.AddCurveToPlot(NameList[counter],
+                                                ColorList[counter],
+                                                MarkerSizeList[counter],
+                                                LineWidthList[counter],
+                                                IncludeInXaxisAutoscaleCalculationList[counter],
+                                                IncludeInYaxisAutoscaleCalculationList[counter])
+
+                    else:
+                        print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: Error, 'NameList','CurveList','MarkerSizeList', and 'LineWidthList' must be the same length in self.CurvesToPlotNamesAndColorsDictOfLists.")
+                        return 0
+                else:
+                    print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: Error, 'CurveList' key must be in self.CurvesToPlotNamesAndColorsDictOfLists.")
+                    return 0
+            else:
+                print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: Error, 'NameList' key must be in self.CurvesToPlotNamesAndColorsDictOfLists.")
+                return 0
+            ##########################################
+
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            self.AxesAllLines_IDforCreateLine = [-1]*(1 + 1 + self.XaxisNumberOfTickMarks + self.YaxisNumberOfTickMarks)
+            self.AxesAllText_IDforCreateText = [-1]*(1 + 1 + self.XaxisNumberOfTickMarks + self.YaxisNumberOfTickMarks + len(self.CurvesToPlotNamesAndColorsDictOfLists["NameList"])) #Adding in the legend text
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess" in SetupDict:
+                self.WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess",
+                                                                                                                                                       SetupDict["WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess"], 0.0, 1000.0)
+            else:
+                self.WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess = 0.0
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess: " + str(self.WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess))
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "StandAlonePlottingProcess_TimeToSleepEachLoop" in SetupDict:
+
+                ##########################################
+                if self.OSnameStr == "windows":
+                    self.StandAlonePlottingProcess_TimeToSleepEachLoop = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("StandAlonePlottingProcess_TimeToSleepEachLoop", SetupDict["StandAlonePlottingProcess_TimeToSleepEachLoop"], 0.001, 1.0)
+                ##########################################
+
+                ##########################################
+                elif self.OSnameStr == "pi":
+                    self.StandAlonePlottingProcess_TimeToSleepEachLoop = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("StandAlonePlottingProcess_TimeToSleepEachLoop", SetupDict["StandAlonePlottingProcess_TimeToSleepEachLoop"], 0.005, 1.0)  # Pi can't handle below 0.005
+                ##########################################
+
+                ##########################################
+                else:
+                    self.StandAlonePlottingProcess_TimeToSleepEachLoop = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("StandAlonePlottingProcess_TimeToSleepEachLoop", SetupDict["StandAlonePlottingProcess_TimeToSleepEachLoop"], 0.001, 1.0)
+                ##########################################
+
+            else:
+                self.StandAlonePlottingProcess_TimeToSleepEachLoop = 0.030
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: StandAlonePlottingProcess_TimeToSleepEachLoop: " + str(self.StandAlonePlottingProcess_TimeToSleepEachLoop))
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "AxisMinMaxEpsilon" in SetupDict:
+                self.AxisMinMaxEpsilon = self.PassThroughFloatValuesInRange_ExitProgramOtherwise("AxisMinMaxEpsilon", SetupDict["AxisMinMaxEpsilon"], 0.000001, 1000.0)
+            else:
+                self.AxisMinMaxEpsilon = 0.000001
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: AxisMinMaxEpsilon: " + str(self.AxisMinMaxEpsilon))
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "GraphNumberOfLeadingZeros" in SetupDict:
+                self.GraphNumberOfLeadingZeros = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GraphNumberOfLeadingZeros", SetupDict["GraphNumberOfLeadingZeros"], 0.0, 10.0))
+            else:
+                self.GraphNumberOfLeadingZeros = 2
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: GraphNumberOfLeadingZeros: " + str(self.GraphNumberOfLeadingZeros))
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "GraphNumberOfDecimalPlaces" in SetupDict:
+                self.GraphNumberOfDecimalPlaces = int(self.PassThroughFloatValuesInRange_ExitProgramOtherwise("GraphNumberOfDecimalPlaces", SetupDict["GraphNumberOfDecimalPlaces"], 0.0, 10.0))
+            else:
+                self.GraphNumberOfDecimalPlaces = 5
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: GraphNumberOfDecimalPlaces: " + str(self.GraphNumberOfDecimalPlaces))
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "SavePlot_DirectoryPath" in SetupDict:
+                self.SavePlot_DirectoryPath = str(SetupDict["SavePlot_DirectoryPath"])
+            else:
+                self.SavePlot_DirectoryPath = os.path.join(os.getcwd(), "SavedImages")
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: SavePlot_DirectoryPath: " + str(self.SavePlot_DirectoryPath))
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "KeepPlotterWindowAlwaysOnTopFlag" in SetupDict:
+                self.KeepPlotterWindowAlwaysOnTopFlag = self.PassThrough0and1values_ExitProgramOtherwise("KeepPlotterWindowAlwaysOnTopFlag", SetupDict["KeepPlotterWindowAlwaysOnTopFlag"])
+            else:
+                self.KeepPlotterWindowAlwaysOnTopFlag = 0
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: KeepPlotterWindowAlwaysOnTopFlag: " + str(self.KeepPlotterWindowAlwaysOnTopFlag))
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag" in SetupDict:
+                self.RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag = self.PassThrough0and1values_ExitProgramOtherwise("RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag", SetupDict["RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag"])
+            else:
+                self.RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag = 0
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag: " + str(self.RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag))
+            ##########################################
+            ##########################################
+
+            ##########################################
+            ##########################################
+            if "AllowResizingOfWindowFlag" in SetupDict:
+                self.AllowResizingOfWindowFlag = self.PassThrough0and1values_ExitProgramOtherwise("AllowResizingOfWindowFlag", SetupDict["AllowResizingOfWindowFlag"])
+            else:
+                self.AllowResizingOfWindowFlag = 1
+
+            if PrintInfoForDebuggingFlag == 1: print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: AllowResizingOfWindowFlag: " + str(self.AllowResizingOfWindowFlag))
+            ##########################################
+            ##########################################
+
+            ##########################################################################################################
+            ##########################################################################################################
+            ##########################################################################################################
+
+            return 1
 
         ##########################################################################################################
         ##########################################################################################################
         ##########################################################################################################
+        ##########################################################################################################
 
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+        except:
+            exceptions = sys.exc_info()[0]
+            print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, __ProcessVariablesThatCanBeLiveUpdated: Exceptions: %s" % exceptions)
+            #traceback.print_exc()
+            return 0
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+
+    ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
@@ -886,7 +931,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
             self.TimeIntoWatchdogTimer = self.CurrentTime_CalculatedFromStandAlonePlottingProcess - self.LastTime_CalculatedFromStandAlonePlottingProcess
 
             if self.TimeIntoWatchdogTimer >= self.WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess:
-                print("***** MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, Watchdog fired! *****")
+                print("***** MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class, Watchdog fired, self.TimeIntoWatchdogTimer = " + str(self.TimeIntoWatchdogTimer) + "seconds *****")
                 self.EXIT_PROGRAM_FLAG = 1
         #############################################
 
@@ -905,16 +950,25 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
 
         print("Entering MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class StandAlonePlottingProcess.")
 
+        ##########################################
+        self.EXIT_PROGRAM_FLAG = 0
+        self.GUI_ready_to_be_updated_flag = 0
+        ##########################################
+
         ##########################################################################################################
         ##########################################################################################################
         ##########################################################################################################
         ##########################################################################################################
         ##########################################################################################################
 
-        self.__ProcessVariablesThatCanNOTbeLiveUpdated(SetupDict, PrintInfoForDebuggingFlag = 1)
+        SuccessFlag = self.__ProcessVariablesThatCanNOTbeLiveUpdated(SetupDict, PrintInfoForDebuggingFlag = 1)
+        if SuccessFlag == 0:
+            self.EXIT_PROGRAM_FLAG = 1
 
         self.RootGeometryHasBeenModified_HasThisEventFiredBeforeFlag = 0
-        self.__ProcessVariablesThatCanBeLiveUpdated(SetupDict, PrintInfoForDebuggingFlag = 1)
+        SuccessFlag = self.__ProcessVariablesThatCanBeLiveUpdated(SetupDict, PrintInfoForDebuggingFlag = 1)
+        if SuccessFlag == 0:
+            self.EXIT_PROGRAM_FLAG = 1
 
         ##########################################################################################################
         ##########################################################################################################
@@ -932,11 +986,6 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         self.OSnameStr = MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class.GetOSnameStr()
 
         self.SelfPID = os.getpid()
-        ##########################################
-
-        ##########################################
-        self.EXIT_PROGRAM_FLAG = 0
-        self.GUI_ready_to_be_updated_flag = 0
         ##########################################
 
         ##########################################
@@ -1011,7 +1060,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
 
         ##########################################
         try:
-            if GetCPUandMemoryUsageOfProcessByPID_ModuleImportedFlag == 1:
+            if GetCPUandMemoryUsageOfProcessByPID_ModuleImportedFlag == 1 and self.EXIT_PROGRAM_FLAG == 0:
                 self.GetCPUandMemoryUsageOfProcessByPID_Object = GetCPUandMemoryUsageOfProcessByPID_ReubenPython3Class(dict([("Process_PID_Integer", self.SelfPID)]))
                 self.GetCPUandMemoryUsageOfProcessByPID_OPEN_FLAG = self.GetCPUandMemoryUsageOfProcessByPID_Object.OBJECT_CREATED_SUCCESSFULLY_FLAG
 
@@ -1021,11 +1070,6 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
             traceback.print_exc()
         ##########################################
 
-        ##########################################
-        if self.GetCPUandMemoryUsageOfProcessByPID_OPEN_FLAG == 0:
-            print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class __init__: Error creating GetCPUandMemoryUsageOfProcessByPID_Object.")
-        ##########################################
-
         ##########################################################################################################
         ##########################################################################################################
         ##########################################################################################################
@@ -1038,7 +1082,8 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         ##########################################################################################################
         ##########################################################################################################
 
-        self.StartGUI()
+        if self.EXIT_PROGRAM_FLAG == 0:
+            self.StartGUI()
 
         self.CTRLc_RegisterHandlerFunction()
 
@@ -1441,7 +1486,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
-    def ExternalAddPointOrListOfPointsToPlot(self, CurveNameStringList, XdataList, YdataList, OverrideCurveAndPointListsMustMatchInLengthFlag=0):
+    def ExternalAddPointOrListOfPointsToPlot(self, CurveNameStringList, XdataList, YdataList, OverrideCurveAndPointListsMustMatchInLengthFlag=0, PrintInfoForDebuggingFlag=0):
 
         ###########################################
         if self.IsInputList(CurveNameStringList) == 0:
@@ -1482,6 +1527,8 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         for CurveIndex, CurveNameString in enumerate(CurveNameStringList):
             self.MultiprocessingQueue_Rx.put(dict([("CurveName", CurveNameString), ("x", XdataList[CurveIndex]), ("y", YdataList[CurveIndex])]))
         ###########################################
+
+        if PrintInfoForDebuggingFlag == 1: print("ExternalAddPointOrListOfPointsToPlot event fired!")
 
     ##########################################################################################################
     ##########################################################################################################
@@ -1929,8 +1976,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
     ##########################################################################################################
     def StartGUI(self):
 
-        self.GUI_Thread_ThreadingObject = threading.Thread(target=self.GUI_Thread)  # 05/10/2023, MUST LAUNCH THIS WAY, CANNOT DO 'self.GUI_Thread() as with other classes'
-        self.GUI_Thread_ThreadingObject.setDaemon(True)  # Should mean that the GUI thread is destroyed automatically when the main thread is destroyed.
+        self.GUI_Thread_ThreadingObject = threading.Thread(target=self.GUI_Thread, daemon=True) #Daemon=True means that the GUI thread is destroyed automatically when the main thread is destroyed.
         self.GUI_Thread_ThreadingObject.start()
 
     ##########################################################################################################
@@ -1948,7 +1994,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         ###################################################
         self.root.title(self.GraphCanvasWindowTitle)
         self.root.protocol("WM_DELETE_WINDOW", self.ExitProgram_Callback)
-        self.root.geometry('%dx%d+%d+%d' % (self.GraphCanvasWidth, self.GraphCanvasHeight + 50, self.GraphCanvasWindowStartingX, self.GraphCanvasWindowStartingY))  # +50 for Debug_Label
+        self.root.geometry('%dx%d+%d+%d' % (self.GraphCanvasWidth, self.GraphCanvasHeight + 80, self.GraphCanvasWindowStartingX, self.GraphCanvasWindowStartingY))  # +50 for Debug_Label
         self.root.after(self.GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents, self.__GUI_update_clock)
         ###################################################
         ###################################################
@@ -1988,7 +2034,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
 
         ###################################################
         ###################################################
-        self.myFrame = Frame(self.root)
+        self.myFrame = Frame(self.root, bg="white")
         self.myFrame.grid()
         ###################################################
         ###################################################
@@ -2024,7 +2070,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
 
         ###################################################
         ###################################################
-        self.Debug_Label = Label(self.myFrame, text="Debug_Label", width=100)
+        self.Debug_Label = Label(self.myFrame, text="Debug_Label", width=100, bg="white")
         self.Debug_Label.grid(row=1, column=0, padx=0, pady=0, columnspan=1, rowspan=1, sticky="w")
         ###################################################
         ###################################################
@@ -2032,7 +2078,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         ###################################################
         ###################################################
         self.PlotControlsFrame = Frame(self.myFrame, bg="white")
-        self.PlotControlsFrame.grid(row=2, column=0, padx=1, pady=1, columnspan=1, rowspan=1)
+        self.PlotControlsFrame.grid(row=2, column=0, padx=1, pady=1, columnspan=1, rowspan=1, sticky="w")
         ###################################################
         ###################################################
 
@@ -2048,14 +2094,14 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         ###################################################
         ###################################################
         self.ToggleFreezePlot_Button = Button(self.PlotControlsFrame, text='Freeze Plot', state="normal", width=self.ButtonWidth, font=("Helvetica", 8), command=lambda i=1: self.ToggleFreezePlot_ButtonResponse())
-        self.ToggleFreezePlot_Button.grid(row=0, column=1, padx=1, pady=1, columnspan=1, rowspan=1)
+        self.ToggleFreezePlot_Button.grid(row=1, column=0, padx=1, pady=1, columnspan=1, rowspan=1)
         ###################################################
         ###################################################
 
         ###################################################
         ###################################################
         self.SavePlot_Button = Button(self.PlotControlsFrame, text='Save Plot', state="normal", width=self.ButtonWidth, font=("Helvetica", 8), command=lambda i=1: self.SavePlot_ButtonResponse())
-        self.SavePlot_Button.grid(row=0, column=2, padx=1, pady=1, columnspan=1, rowspan=1)
+        self.SavePlot_Button.grid(row=0, column=1, padx=1, pady=1, columnspan=1, rowspan=1)
 
         if self.pyautogui_ModuleImportedFlag == 0:
             self.SavePlot_Button["state"] = "disabled"
@@ -2069,7 +2115,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         self.Y_min_label.grid(row=0, column=3, padx=1, pady=1, columnspan=1, rowspan=1)
 
         self.Y_min_StringVar = StringVar()
-        self.Y_min_StringVar.set(self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.Y_min, self.GraphNumberOfLeadingZeros, self.GraphNumberOfDecimalPlaces))
+        self.Y_min_StringVar.set(float(self.RemoveLeadingZerosFromString(self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.Y_min, self.GraphNumberOfLeadingZeros, self.GraphNumberOfDecimalPlaces))))
         self.Y_min_Entry = Entry(self.PlotControlsFrame, width=15, state="normal", textvariable=self.Y_min_StringVar)
         self.Y_min_Entry.grid(row=0, column=4, padx=1, pady=1, columnspan=1, rowspan=1)
         self.Y_min_Entry.bind('<Return>', lambda event: self.Y_min_Entry_Response(event))
@@ -2079,12 +2125,12 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         ###################################################
         ###################################################
         self.Y_max_label = Label(self.PlotControlsFrame, text="Y_max", width=15, bg="white")
-        self.Y_max_label.grid(row=0, column=5, padx=1, pady=1, columnspan=1, rowspan=1)
+        self.Y_max_label.grid(row=1, column=3, padx=1, pady=1, columnspan=1, rowspan=1)
 
         self.Y_max_StringVar = StringVar()
-        self.Y_max_StringVar.set(self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.Y_max, self.GraphNumberOfLeadingZeros, self.GraphNumberOfDecimalPlaces))
+        self.Y_max_StringVar.set(float(self.RemoveLeadingZerosFromString(self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.Y_max, self.GraphNumberOfLeadingZeros, self.GraphNumberOfDecimalPlaces))))
         self.Y_max_Entry = Entry(self.PlotControlsFrame, width=15, state="normal", textvariable=self.Y_max_StringVar)
-        self.Y_max_Entry.grid(row=0, column=6, padx=1, pady=1, columnspan=1, rowspan=1)
+        self.Y_max_Entry.grid(row=1, column=4, padx=1, pady=1, columnspan=1, rowspan=1)
         self.Y_max_Entry.bind('<Return>', lambda event: self.Y_max_Entry_Response(event))
         ###################################################
         ###################################################
@@ -2099,23 +2145,15 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         ###################################################
         ###################################################
         self.ClearPlot_Button = Button(self.PlotControlsFrame, text='Clear', state="normal", width=self.ButtonWidth, font=("Helvetica", 8), command=lambda i=1: self.ClearPlot_ButtonResponse())
-        self.ClearPlot_Button.grid(row=0, column=8, padx=1, pady=1, columnspan=1, rowspan=1)
+        self.ClearPlot_Button.grid(row=1, column=1, padx=1, pady=1, columnspan=1, rowspan=1)
         ###################################################
         ###################################################
 
         ###################################################
         ###################################################
-        self.PrintToGui_Label = Label(self.myFrame, text="PrintToGui_Label", width=100)
+        self.PrintToGui_Label = Label(self.myFrame, text="PrintToGui_Label", width=100, bg="white")
         if self.EnableInternal_MyPrint_Flag == 1:
-            self.PrintToGui_Label.grid(row=0, column=3, padx=0, pady=0, columnspan=1, rowspan=10)
-        ###################################################
-        ###################################################
-
-        ###################################################
-        ###################################################
-        self.myFrame["bg"] = "white"
-        self.Debug_Label["bg"] = "white"
-        self.PrintToGui_Label["bg"] = "white"
+            self.PrintToGui_Label.grid(row=3, column=0, padx=0, pady=0, columnspan=1, rowspan=1)
         ###################################################
         ###################################################
 
@@ -2323,11 +2361,11 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         self.Y_max = self.Y_max_StoredFrom__ProcessVariablesThatCanBeLiveUpdated
 
         #######################################################
-        self.Y_min_StringVar.set(float(self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.Y_min, self.GraphNumberOfLeadingZeros, self.GraphNumberOfDecimalPlaces)))
+        self.Y_min_StringVar.set(float(self.RemoveLeadingZerosFromString(self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.Y_min, self.GraphNumberOfLeadingZeros, self.GraphNumberOfDecimalPlaces))))
         #######################################################
 
         #######################################################
-        self.Y_max_StringVar.set(float(self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.Y_max, self.GraphNumberOfLeadingZeros, self.GraphNumberOfDecimalPlaces)))
+        self.Y_max_StringVar.set(float(self.RemoveLeadingZerosFromString(self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.Y_max, self.GraphNumberOfLeadingZeros, self.GraphNumberOfDecimalPlaces))))
         #######################################################
 
         # print("ResetMinAndMax_ButtonResponse event fired!")
@@ -3109,13 +3147,14 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
                 ##########################################################################################################
                 ##########################################################################################################
                 self.Debug_Label["text"] = "P.PID = " + str(self.ParentPID) + \
-                                           ", SelfPID = " + str(self.SelfPID) + \
-                                           ", Time: " + self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.CurrentTime_CalculatedFromGUIthread, 0, 1) + \
-                                           ", Freq: " + self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.LoopFrequency_CalculatedFromGUIthread, 0, 3) + \
-                                           ", CPU %: " + str(self.MemoryUsageOfProcessByPID_Dict["CPUusage_Percent"]) + \
-                                           ", MEM %: " + str(self.MemoryUsageOfProcessByPID_Dict["MemoryUsage_Percent"]) + \
-                                           ", #: " + str(len(self.CanvasForDrawingGraph.find_all())) + \
-                                           ", Watchdog: " + self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.TimeIntoWatchdogTimer, 0, 3)
+                                            ", SelfPID = " + str(self.SelfPID) + \
+                                            ", Time: " + self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.CurrentTime_CalculatedFromGUIthread, 0, 1) + \
+                                            ", Freq: " + self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.LoopFrequency_CalculatedFromGUIthread, 2, 3) + \
+                                            ", CPU %: " + str(self.MemoryUsageOfProcessByPID_Dict["CPUusage_Percent"]) + \
+                                            ", MEM %: " + str(self.MemoryUsageOfProcessByPID_Dict["MemoryUsage_Percent"]) + \
+                                            ", #: " + str(len(self.CanvasForDrawingGraph.find_all())) + \
+                                            ", Watchdog: " + self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.TimeIntoWatchdogTimer, 0, 3)
+
                 ##########################################################################################################
                 ##########################################################################################################
                 ##########################################################################################################
@@ -3149,15 +3188,15 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
                     #######################################################
 
                     #######################################################
-                    self.Y_min_StringVar.set(float(self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.Y_min,
+                    self.Y_min_StringVar.set(float(self.RemoveLeadingZerosFromString(self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.Y_min,
                                                                                                                                          self.GraphNumberOfLeadingZeros,
-                                                                                                                                         self.GraphNumberOfDecimalPlaces)))
+                                                                                                                                         self.GraphNumberOfDecimalPlaces))))
                     #######################################################
 
                     #######################################################
-                    self.Y_max_StringVar.set(float(self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.Y_max,
+                    self.Y_max_StringVar.set(float(self.RemoveLeadingZerosFromString(self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self.Y_max,
                                                                                                                                          self.GraphNumberOfLeadingZeros,
-                                                                                                                                         self.GraphNumberOfDecimalPlaces)))
+                                                                                                                                         self.GraphNumberOfDecimalPlaces))))
                     #######################################################
 
                 ##########################################################################################################

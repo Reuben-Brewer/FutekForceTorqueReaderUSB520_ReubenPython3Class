@@ -6,12 +6,20 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision P, 07/14/2025
+Software Revision Q, 12/22/2025
 
-Verified working on: Python 3.11/3.12 for Windows 10/11 64-bit and Raspberry Pi Bookworm.
+Verified working on: Python 3.11/12/13 for Windows 10/11 64-bit and Raspberry Pi Bookworm.
 '''
 
 __author__ = 'reuben.brewer'
+
+##########################################################################################################
+##########################################################################################################
+
+#########################################################
+import ReubenGithubCodeModulePaths #Replaces the need to have "ReubenGithubCodeModulePaths.pth" within "C:\Anaconda3\Lib\site-packages", which slows down the start of a Python interpreter if your code directories are in Google Drive.
+ReubenGithubCodeModulePaths.Enable()
+#########################################################
 
 ###########################################################
 from EntryListWithBlinking_ReubenPython2and3Class import *
@@ -45,6 +53,9 @@ if platform.system() == "Windows":
     winmm = ctypes.WinDLL('winmm')
     winmm.timeBeginPeriod(1) #Set minimum timer resolution to 1ms so that time.sleep(0.001) behaves properly.
 ###########################################################
+
+##########################################################################################################
+##########################################################################################################
 
 class CSVdataLogger_ReubenPython3Class(Frame): #Subclass the Tkinter Frame
 
@@ -116,16 +127,6 @@ class CSVdataLogger_ReubenPython3Class(Frame): #Subclass the Tkinter Frame
                 self.USE_GUI_FLAG = 0
 
             print("CSVdataLogger_ReubenPython3Class __init__: USE_GUI_FLAG: " + str(self.USE_GUI_FLAG))
-            #########################################################
-            #########################################################
-
-            #########################################################
-            #########################################################
-            if "root" in self.GUIparametersDict:
-                self.root = self.GUIparametersDict["root"]
-            else:
-                print("CSVdataLogger_ReubenPython3Class __init__: Error, must pass in 'root'")
-                return
             #########################################################
             #########################################################
 
@@ -316,19 +317,6 @@ class CSVdataLogger_ReubenPython3Class(Frame): #Subclass the Tkinter Frame
         ######################################################### DON'T NEED THIS WHEN THERE'S A CALLBACK AND NOTHING TO DO IN THE MainThread!
         self.MainThread_ThreadingObject = threading.Thread(target=self.MainThread, args=())
         self.MainThread_ThreadingObject.start()
-        #########################################################
-        #########################################################
-
-        #########################################################
-        #########################################################
-        if self.USE_GUI_FLAG == 1:
-            self.StartGUI(self.root)
-        #########################################################
-        #########################################################
-
-        ######################################################### Give the Phidgets board a chance to open before sending commands to it.
-        #########################################################
-        time.sleep(0.25)
         #########################################################
         #########################################################
 
@@ -913,11 +901,11 @@ class CSVdataLogger_ReubenPython3Class(Frame): #Subclass the Tkinter Frame
             ##########################################################################################################
             self.CreateNewDirectoryIfItDoesntExist(self.CSVfile_DirectoryPath)
 
-            self.CSVfile_FilepathFull = self.CSVfile_DirectoryPath + "//" +\
-                                         self.FilenamePrefix +\
-                                         "_Trial_" + str(self.TrialNumber) +\
-                                         "_" + self.getTimeStampString() +\
-                                         ".csv"
+            self.CSVfile_FilepathFull = os.path.join(self.CSVfile_DirectoryPath,
+                                                    self.FilenamePrefix
+                                                    + "_Trial_" + str(self.TrialNumber)
+                                                    + "_" + self.getTimeStampString()
+                                                    + ".csv")
 
             self.CSVfile_FileObject = open(self.CSVfile_FilepathFull, "a") #Will append to file if it exists, create new file with this as first entry if file doesn't exist.
 
@@ -1192,22 +1180,14 @@ class CSVdataLogger_ReubenPython3Class(Frame): #Subclass the Tkinter Frame
 
     ##########################################################################################################
     ##########################################################################################################
-    def StartGUI(self, GuiParent):
+    def CreateGUIobjects(self, TkinterParent):
 
-        self.GUI_Thread(GuiParent)
-    ##########################################################################################################
-    ##########################################################################################################
-
-    ##########################################################################################################
-    ##########################################################################################################
-    def GUI_Thread(self, parent):
-
-        print("Starting the GUI_Thread for CSVdataLogger_ReubenPython3Class object.")
+        print("CSVdataLogger_ReubenPython3ClassStarting, CreateGUIobjects event fired.")
 
         #################################################
         #################################################
-        self.root = parent
-        self.parent = parent
+        self.root = TkinterParent
+        self.parent = TkinterParent
         #################################################
         #################################################
 
@@ -1262,8 +1242,7 @@ class CSVdataLogger_ReubenPython3Class(Frame): #Subclass the Tkinter Frame
         self.LabelWidth = 20
         self.FontSize = 12
 
-        self.EntryListWithBlinking_ReubenPython2and3ClassObject_GUIparametersDict = dict([("root", self.myFrame),
-                                                                                          ("UseBorderAroundThisGuiObjectFlag", 0),
+        self.EntryListWithBlinking_ReubenPython2and3ClassObject_GUIparametersDict = dict([("UseBorderAroundThisGuiObjectFlag", 0),
                                                                                           ("GUI_ROW", 0),
                                                                                           ("GUI_COLUMN", 1),
                                                                                           ("GUI_PADX", 10),
@@ -1284,6 +1263,9 @@ class CSVdataLogger_ReubenPython3Class(Frame): #Subclass the Tkinter Frame
             self.EntryListWithBlinking_ReubenPython2and3ClassObject = EntryListWithBlinking_ReubenPython2and3Class(self.EntryListWithBlinking_ReubenPython2and3ClassObject_setup_dict)
             time.sleep(0.010)
             self.EntryListWithBlinking_OPEN_FLAG = self.EntryListWithBlinking_ReubenPython2and3ClassObject.OBJECT_CREATED_SUCCESSFULLY_FLAG
+
+            if self.EntryListWithBlinking_OPEN_FLAG == 1:
+                self.EntryListWithBlinking_ReubenPython2and3ClassObject.CreateGUIobjects(TkinterParent=self.myFrame)
 
         except:
             exceptions = sys.exc_info()[0]
@@ -1324,7 +1306,7 @@ class CSVdataLogger_ReubenPython3Class(Frame): #Subclass the Tkinter Frame
 
     ##########################################################################################################
     ##########################################################################################################
-    def grid():
+    def grid(self):
         
         ##########################################################################################################
         try:
@@ -1348,7 +1330,7 @@ class CSVdataLogger_ReubenPython3Class(Frame): #Subclass the Tkinter Frame
 
     ##########################################################################################################
     ##########################################################################################################
-    def grid_remove():
+    def grid_remove(self):
         
         ##########################################################################################################
         try:
