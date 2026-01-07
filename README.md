@@ -16,7 +16,7 @@ www.reubotics.com
 
 Apache 2 License
 
-Software Revision E, 12/26/2025
+Software Revision F, 01/07/2026
 
 Verified working on:
 
@@ -40,9 +40,11 @@ Alternatively, you can enter into the DLL-containing-folder from ADMIN PowerShel
 
 Get-ChildItem -Path . -Filter *.dll | Unblock-File
 
+IMPORTANT NOTE 3:
+
+As long as the DLL is in some subfolder within the parent code's same directory, the FutekForceTorqueReaderUSB520_ReubenPython3Class will find and load it.
+
 ###########################
-
-
 
 ########################### Python module installation instructions, all OS's
 
@@ -67,6 +69,5 @@ FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies_Nested
 FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies_All:['clr', 'CSVdataLogger_ReubenPython3Class', 'EntryListWithBlinking_ReubenPython2and3Class', 'FUTEK_USB_DLL', 'GetCPUandMemoryUsageOfProcessByPID_ReubenPython3Class', 'keyboard', 'LowPassFilterForDictsOfLists_ReubenPython2and3Class', 'MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class', 'MyPrint_ReubenPython2and3Class', 'numpy', 'pexpect', 'psutil', 'pyautogui', 'ReubenGithubCodeModulePaths', 'ZeroAndSnapshotData_ReubenPython2and3Class']
 
 ############
-
 
 ###########################
