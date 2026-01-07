@@ -6,7 +6,7 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision E, 12/26/2025
+Software Revision F, 01/07/2026
 
 Verified working on: Python 3.11/12/13 for Windows 10, 11 64-bit.
 '''
@@ -88,6 +88,17 @@ Excellent API documentation for the FUTEK here: https://media.futek.com/docs/dot
 
 try:
 
+    import __main__
+    print("FutekForceTorqueReaderUSB520_ReubenPython3Class: " + str(__main__.__file__))
+
+    from pathlib import Path
+    ROOT_DIR = Path(__main__.__file__).resolve().parent
+
+    dll_dir = next(ROOT_DIR.rglob("FUTEK_USB_DLL.dll")).parent #Searches all subfolders within the parent folder (parent being the script that instantiates the FUTEK class).
+    print("FutekForceTorqueReaderUSB520_ReubenPython3Class, clr.AddReference('FUTEK_USB_DLL'), dll_dir: " + str(dll_dir))
+
+    sys.path.insert(0, str(dll_dir))
+
     import clr
     clr.AddReference("FUTEK_USB_DLL")
 
@@ -98,7 +109,9 @@ try:
 
 except:
     FUTEK_USB_DLL_ImportedFlag = 0
-
+    exceptions = sys.exc_info()[0]
+    print("FutekForceTorqueReaderUSB520_ReubenPython3Class, clr.AddReference('FUTEK_USB_DLL'), Exceptions: %s" % exceptions)
+    traceback.print_exc()
 ##########################################
 
 ##########################################################################################################
