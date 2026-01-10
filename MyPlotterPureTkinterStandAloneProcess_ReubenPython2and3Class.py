@@ -6,7 +6,7 @@ reuben.brewer@gmail.com,
 www.reubotics.com
 
 Apache 2 License
-Software Revision AA, 12/22/2025
+Software Revision AB, 01/09/2026
 
 Verified working on: Python 3.11/12/13 for Windows 10/11 64-bit, Ubuntu 20.04, and Raspberry Pi Bookworm.
 '''
@@ -3361,9 +3361,9 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
-    def ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self, input, number_of_leading_numbers = 4, number_of_decimal_places = 3):
+    def ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(self, input, NumberOfLeadingNumbers = 4, NumberOfDecimalPlaces = 3):
 
-        number_of_decimal_places = max(1, number_of_decimal_places) #Make sure we're above 1
+        NumberOfDecimalPlaces = max(1, NumberOfDecimalPlaces) #Make sure we're above 1
 
         ListOfStringsToJoin = []
 
@@ -3381,16 +3381,16 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
         ##########################################################################################################
         elif isinstance(input, int) == 1 or isinstance(input, float) == 1:
             element = float(input)
-            prefix_string = "{:." + str(number_of_decimal_places) + "f}"
+            prefix_string = "{:." + str(NumberOfDecimalPlaces) + "f}"
             element_as_string = prefix_string.format(element)
 
             ##########################################################################################################
             ##########################################################################################################
             if element >= 0:
-                element_as_string = element_as_string.zfill(number_of_leading_numbers + number_of_decimal_places + 1 + 1)  # +1 for sign, +1 for decimal place
+                element_as_string = element_as_string.zfill(NumberOfLeadingNumbers + NumberOfDecimalPlaces + 1 + 1)  # +1 for sign, +1 for decimal place
                 element_as_string = "+" + element_as_string  # So that our strings always have either + or - signs to maintain the same string length
             else:
-                element_as_string = element_as_string.zfill(number_of_leading_numbers + number_of_decimal_places + 1 + 1 + 1)  # +1 for sign, +1 for decimal place
+                element_as_string = element_as_string.zfill(NumberOfLeadingNumbers + NumberOfDecimalPlaces + 1 + 1 + 1)  # +1 for sign, +1 for decimal place
             ##########################################################################################################
             ##########################################################################################################
 
@@ -3406,7 +3406,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
 
             if len(input) > 0:
                 for element in input: #RECURSION
-                    ListOfStringsToJoin.append(self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(element, number_of_leading_numbers, number_of_decimal_places))
+                    ListOfStringsToJoin.append(self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(element, NumberOfLeadingNumbers, NumberOfDecimalPlaces))
 
             else: #Situation when we get a list() or []
                 ListOfStringsToJoin.append(str(input))
@@ -3422,7 +3422,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
 
             if len(input) > 0:
                 for element in input: #RECURSION
-                    ListOfStringsToJoin.append("TUPLE" + self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(element, number_of_leading_numbers, number_of_decimal_places))
+                    ListOfStringsToJoin.append("TUPLE" + self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(element, NumberOfLeadingNumbers, NumberOfDecimalPlaces))
 
             else: #Situation when we get a list() or []
                 ListOfStringsToJoin.append(str(input))
@@ -3438,7 +3438,7 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
 
             if len(input) > 0:
                 for Key in input: #RECURSION
-                    ListOfStringsToJoin.append(str(Key) + ": " + self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(input[Key], number_of_leading_numbers, number_of_decimal_places))
+                    ListOfStringsToJoin.append(str(Key) + ": " + self.ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(input[Key], NumberOfLeadingNumbers, NumberOfDecimalPlaces))
 
             else: #Situation when we get a dict()
                 ListOfStringsToJoin.append(str(input))
@@ -3508,6 +3508,9 @@ class MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(Frame):  # Su
 
         else:
             StringToReturn = ListOfStringsToJoin
+
+        StringToReturn = StringToReturn.replace("+-","") #in case we get both signs
+        tringToReturn = StringToReturn.replace("-+", "")  # in case we get both signs
 
         return StringToReturn
         ##########################################################################################################

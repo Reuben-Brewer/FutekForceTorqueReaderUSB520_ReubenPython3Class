@@ -6,7 +6,7 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision F, 01/07/2026
+Software Revision G, 01/09/2026
 
 Verified working on: Python 3.11/12/13 for Windows 10, 11 64-bit.
 '''
@@ -403,10 +403,14 @@ def GUI_update_clock():
 ##########################################################################################################
 def ExitProgram_Callback(OptionalArugment = 0):
     global EXIT_PROGRAM_FLAG
+    global CSVdataLogger_MostRecentDict_IsSavingFlag
 
     print("ExitProgram_Callback event fired!")
 
-    EXIT_PROGRAM_FLAG = 1
+    if CSVdataLogger_MostRecentDict_IsSavingFlag == 0:
+        EXIT_PROGRAM_FLAG = 1
+    else:
+        print("ExitProgram_Callback, ERROR! Still saving data.")
 ##########################################################################################################
 ##########################################################################################################
 
@@ -876,6 +880,9 @@ if __name__ == '__main__':
 
     global CSVdataLogger_MostRecentDict_Time
     CSVdataLogger_MostRecentDict_Time = -11111.0
+
+    global CSVdataLogger_MostRecentDict_IsSavingFlag
+    CSVdataLogger_MostRecentDict_IsSavingFlag = 0
 
     global CSVdataLogger_SetupDict_VariableNamesForHeaderList
     CSVdataLogger_SetupDict_VariableNamesForHeaderList = ["CurrentTime_MainLoopThread",
@@ -1384,9 +1391,23 @@ if __name__ == '__main__':
         ###################################################
         ###################################################
 
-        ####################################################
+        ################################################### GET's
         ###################################################
-        ####################################################
+        ###################################################
+        if CSVdataLogger_OPEN_FLAG == 1:
+
+            CSVdataLogger_MostRecentDict = CSVdataLogger_Object.GetMostRecentDataDict()
+
+            if "Time" in CSVdataLogger_MostRecentDict:
+                CSVdataLogger_MostRecentDict_Time = CSVdataLogger_MostRecentDict["Time"]
+                CSVdataLogger_MostRecentDict_IsSavingFlag = CSVdataLogger_MostRecentDict["IsSavingFlag"]
+        ###################################################
+        ###################################################
+        ###################################################
+
+        ###################################################
+        ###################################################
+        ###################################################
 
         ################################################### GET's
         ###################################################

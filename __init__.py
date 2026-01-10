@@ -6,9 +6,9 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision F, 01/07/2026
+Software Revision G, 01/09/2026
 
-Verified working on: Python 3.11/12/13 for Windows 10/11 64-bit  and Raspberry Pi Bookworm.
+Verified working on: Python 3.11/12/13 for Windows 10, 11 64-bit.
 '''
 
 #######################################################################################################################
@@ -16,7 +16,7 @@ Verified working on: Python 3.11/12/13 for Windows 10/11 64-bit  and Raspberry P
 #######################################################################################################################
 #######################################################################################################################
 __author__ = 'reuben.brewer'
-__version__ = "Software Revision F, 01/07/2026"
+__version__ = "Software Revision G, 01/09/2026"
 
 from .FutekForceTorqueReaderUSB520_ReubenPython3Class import FutekForceTorqueReaderUSB520_ReubenPython3Class
 
