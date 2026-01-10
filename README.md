@@ -16,7 +16,7 @@ www.reubotics.com
 
 Apache 2 License
 
-Software Revision F, 01/07/2026
+Software Revision G, 01/09/2026
 
 Verified working on:
 
