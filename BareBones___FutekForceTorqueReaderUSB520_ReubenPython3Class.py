@@ -6,9 +6,10 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision G, 01/09/2026
+Software Revision H, 02/02/2026
 
-Verified working on: Python 3.11/12/13 for Windows 10, 11 64-bit.
+Verified working on: Python 3.11/12/13 for Windows 10, 11 64-bit in DLL or USB-Serial mode (limited to 10Hz).
+This specific file does NOT work on Ubuntu or Raspberry Pi because they can't load the DLL.
 '''
 
 __author__ = 'reuben.brewer'

@@ -6,9 +6,10 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision G, 01/09/2026
+Software Revision H, 02/02/2026
 
-Verified working on: Python 3.11/12/13 for Windows 10, 11 64-bit.
+Verified working on: Python 3.11/12/13 for Windows 10, 11 64-bit in DLL or USB-Serial mode (limited to 10Hz).
+Verified working on: Python 3.11/12/13 for Ubuntu 24.04-LTS and Raspberry Pi Bookworm in USB-Serial mode (limited to 10Hz).
 '''
 
 __author__ = 'reuben.brewer'
@@ -852,7 +853,7 @@ if __name__ == '__main__':
     FutekForceTorqueReaderUSB520_DataCollectionDurationInSecondsForSnapshottingAndZeroing = 4.0
 
     global FutekForceTorqueReaderUSB520_FTmeasurement_ExponentialSmoothingFilterLambda
-    FutekForceTorqueReaderUSB520_FTmeasurement_ExponentialSmoothingFilterLambda = 0.95
+    FutekForceTorqueReaderUSB520_FTmeasurement_ExponentialSmoothingFilterLambda = 0.8
 
     global FutekForceTorqueReaderUSB520_FTmeasurementDerivative_ExponentialSmoothingFilterLambda
     FutekForceTorqueReaderUSB520_FTmeasurementDerivative_ExponentialSmoothingFilterLambda = 0.5
@@ -979,6 +980,7 @@ if __name__ == '__main__':
     FutekForceTorqueReaderUSB520_SetupDict = dict([("GUIparametersDict", FutekForceTorqueReaderUSB520_GUIparametersDict),
                                                     ("ZeroAndSnapshotData___USE_GUI_FLAG", USE_GUI_FLAG and SHOW_IN_GUI_FutekForceTorqueReaderUSB520_FLAG),
                                                     ("NameToDisplay_UserSet", "FutekForceTorqueReaderUSB520"),
+                                                    ("ReadDataViaSerialFlag", 1),
                                                     ("SerialNumber_Desired", "1132494"),
                                                     ("TypeOfBoard_EnglishNameString", "USB520"),
                                                     ("SamplingRateInHz", FutekForceTorqueReaderUSB520_SamplingRateInHz), #[5, 10, 15, 20, 25, 30, 50, 60, 100, 600, 960, 1200, 2400, 4800]

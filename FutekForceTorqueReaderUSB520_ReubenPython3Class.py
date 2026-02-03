@@ -6,9 +6,10 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision G, 01/09/2026
+Software Revision H, 02/02/2026
 
-Verified working on: Python 3.11/12/13 for Windows 10, 11 64-bit.
+Verified working on: Python 3.11/12/13 for Windows 10, 11 64-bit in DLL or USB-Serial mode (limited to 10Hz).
+Verified working on: Python 3.11/12/13 for Ubuntu 24.04-LTS and Raspberry Pi Bookworm in USB-Serial mode (limited to 10Hz).
 '''
 
 __author__ = 'reuben.brewer'
@@ -44,6 +45,25 @@ from tkinter import *
 import tkinter.font as tkFont
 from tkinter import ttk
 import signal #for CTRLc_HandlerFunction
+##########################################
+
+##########################################
+import serial #___IMPORTANT: pip install pyserial (NOT pip install serial).
+from serial.tools import list_ports
+##########################################
+
+##########################################
+global ftd2xx_IMPORTED_FLAG
+ftd2xx_IMPORTED_FLAG = 0
+try:
+    import ftd2xx #https://pypi.org/project/ftd2xx/ 'pip install ftd2xx', current version is 1.3.1 as of 05/06/22. For SetAllFTDIdevicesLatencyTimer function
+    ftd2xx_IMPORTED_FLAG = 1
+
+except:
+    exceptions = sys.exc_info()[0]
+    print("**********")
+    print("********** FutekForceTorqueReaderUSB520_ReubenPython3Class __init__: ERROR, failed to import ftdtxx, Exceptions: %s" % exceptions + " ********** ")
+    print("**********")
 ##########################################
 
 ##########################################
@@ -86,33 +106,37 @@ For loading the DLL via the clr module, it's critical to use the clr *from the p
 Excellent API documentation for the FUTEK here: https://media.futek.com/docs/dotnet/api/FUTEK_USB_DLL~FUTEK_USB_DLL.USB_DLL_methods.html
 '''
 
-try:
+if platform.system() == "Windows":
+    try:
+        import sys
+        ParentFilenameCallingFullPath = __file__
+        print("FutekForceTorqueReaderUSB520_ReubenPython3Class:", ParentFilenameCallingFullPath)
 
-    import sys
-    ParentFilenameCallingFullPath = __file__
-    print("FutekForceTorqueReaderUSB520_ReubenPython3Class:", ParentFilenameCallingFullPath)
+        from pathlib import Path
+        ROOT_DIR = Path(ParentFilenameCallingFullPath).resolve().parent
 
-    from pathlib import Path
-    ROOT_DIR = Path(ParentFilenameCallingFullPath).resolve().parent
+        dll_dir = next(ROOT_DIR.rglob("FUTEK_USB_DLL.dll")).parent #Searches all subfolders within the parent folder (parent being the script that instantiates the FUTEK class).
+        print("FutekForceTorqueReaderUSB520_ReubenPython3Class, clr.AddReference('FUTEK_USB_DLL'), dll_dir: " + str(dll_dir))
 
-    dll_dir = next(ROOT_DIR.rglob("FUTEK_USB_DLL.dll")).parent #Searches all subfolders within the parent folder (parent being the script that instantiates the FUTEK class).
-    print("FutekForceTorqueReaderUSB520_ReubenPython3Class, clr.AddReference('FUTEK_USB_DLL'), dll_dir: " + str(dll_dir))
+        sys.path.insert(0, str(dll_dir))
 
-    sys.path.insert(0, str(dll_dir))
+        import clr
+        clr.AddReference("FUTEK_USB_DLL")
 
-    import clr
-    clr.AddReference("FUTEK_USB_DLL")
+        import FUTEK_USB_DLL #This is NOT a Python module that gets installed; instead, it refers to the line "clr.AddReference("FUTEK_USB_DLL")" above.
+        from FUTEK_USB_DLL import USB_DLL
 
-    import FUTEK_USB_DLL #This is NOT a Python module that gets installed; instead, it refers to the line "clr.AddReference("FUTEK_USB_DLL")" above.
-    from FUTEK_USB_DLL import USB_DLL
+        FUTEK_USB_DLL_ImportedFlag = 1
 
-    FUTEK_USB_DLL_ImportedFlag = 1
-
-except:
+    except:
+        FUTEK_USB_DLL_ImportedFlag = 0
+        exceptions = sys.exc_info()[0]
+        print("FutekForceTorqueReaderUSB520_ReubenPython3Class, clr.AddReference('FUTEK_USB_DLL'), Exceptions: %s" % exceptions)
+        #traceback.print_exc()
+else:
     FUTEK_USB_DLL_ImportedFlag = 0
-    exceptions = sys.exc_info()[0]
-    print("FutekForceTorqueReaderUSB520_ReubenPython3Class, clr.AddReference('FUTEK_USB_DLL'), Exceptions: %s" % exceptions)
-    traceback.print_exc()
+
+print("FUTEK_USB_DLL_ImportedFlag: " + str(FUTEK_USB_DLL_ImportedFlag))
 ##########################################
 
 ##########################################################################################################
@@ -138,10 +162,29 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
         #########################################################
         self.PrintForceTorqueValuesFlag = 0
         self.PrintAngleValuesFlag = 0
+        self.PrintAllReceivedSerialMessageForDebuggingFlag = 1
 
         self.EXIT_PROGRAM_FLAG = 0
         self.OBJECT_CREATED_SUCCESSFULLY_FLAG = 0
         self.EnableInternal_MyPrint_Flag = 0
+        
+        self.ReadDataViaSerialFlag = -1
+
+        self.SerialObject = serial.Serial()
+        self.SerialConnectedFlag = 0
+        self.SerialTimeoutSeconds = 0.5
+        self.SerialParity = serial.PARITY_NONE
+        self.SerialStopBits = serial.STOPBITS_ONE
+        self.SerialByteSize = serial.EIGHTBITS
+        self.SerialBaudRate = 115200
+        self.SerialRxBufferSize = 20 #18 bytes per message
+        self.SerialTxBufferSize = 20 #18 bytes per message
+        self.SerialPortNameCorrespondingToCorrectSerialNumber = ""
+        self.DedicatedTxThread_TxMessageToSend_Queue = Queue.Queue()
+        self.SerialStrToTx_LAST_SENT = ""
+        self.FlushSerial_EventNeedsToBeFiredFlag = 0
+
+
         
         self.DedicatedRxThread_StillRunningFlag = 0
 
@@ -161,7 +204,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
         #########################################################
         if FUTEK_USB_DLL_ImportedFlag != 1:
             print("FutekForceTorqueReaderUSB520_ReubenPython3Class __init__: Error, FUTEK_USB_DLL_ImportedFlag = 0")
-            return
+            self.ReadDataViaSerialFlag = 1
         #########################################################
         #########################################################
 
@@ -200,9 +243,10 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
         #########################################################
         #########################################################
-        self.LoopCounter_CalculatedFromDedicatedRxThread_EnocderQueriesOnly = 0
+        self.LoopCounter_CalculatedFromDedicatedRxThread_EncoderQueriesOnly = 0
 
         self.AngleValue_EncoderCounts = 0.0
+        self.AngleValue_Deg = 0.0
         self.AngularSpeedValue_RevPerMin = 0.0
 
         self.AngleValue_AllUnitsDict = dict([("EncoderTicks", -11111.0),
@@ -444,6 +488,19 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
         #########################################################
         #########################################################
+        if self.ReadDataViaSerialFlag == -1: #Hasn't been re-written by "if FUTEK_USB_DLL_ImportedFlag != 1:
+
+            if "ReadDataViaSerialFlag" in SetupDict:
+                self.ReadDataViaSerialFlag = self.PassThrough0and1values_ExitProgramOtherwise("ReadDataViaSerialFlag", SetupDict["ReadDataViaSerialFlag"])
+            else:
+                self.ReadDataViaSerialFlag = 0
+
+        print("FutekForceTorqueReaderUSB520_ReubenPython3Class __init__: ReadDataViaSerialFlag: " + str(self.ReadDataViaSerialFlag))
+        #########################################################
+        #########################################################
+
+        #########################################################
+        #########################################################
         if "SerialNumber_Desired" in SetupDict:
             self.SerialNumber_Desired = SetupDict["SerialNumber_Desired"]
         else:
@@ -465,7 +522,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
             self.SamplingRateInHz = SamplingRateInHz_TEMP
 
         else:
-            print("InitializeDevice, SamplingRateInHz: Error, must input the device's sampling rate.")
+            print("InitializeDeviceViaDLL, SamplingRateInHz: Error, must input the device's sampling rate.")
             return
 
         print("FutekForceTorqueReaderUSB520_ReubenPython3Class __init__: SamplingRateInHz: " + str(self.SamplingRateInHz))
@@ -478,7 +535,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
             TypeOfBoard_EnglishNameString_TEMP = str(SetupDict["TypeOfBoard_EnglishNameString"])
 
             if TypeOfBoard_EnglishNameString_TEMP not in self.TypeOfBoard_EnglishNameStringAsKey_Dict:
-                print("InitializeDevice, Error: TypeOfBoard_EnglishNameString of " + str(TypeOfBoard_EnglishNameString_TEMP) + " is not in TypeOfBoard_EnglishNameStringAsKey_Dict = " + str(self.TypeOfBoard_EnglishNameStringAsKey_Dict))
+                print("InitializeDeviceViaDLL, Error: TypeOfBoard_EnglishNameString of " + str(TypeOfBoard_EnglishNameString_TEMP) + " is not in TypeOfBoard_EnglishNameStringAsKey_Dict = " + str(self.TypeOfBoard_EnglishNameStringAsKey_Dict))
                 return
 
             self.TypeOfBoard_EnglishNameString = TypeOfBoard_EnglishNameString_TEMP
@@ -566,20 +623,20 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
         #########################################################
         #new_filtered_value = k * raw_sensor_value + (1 - k) * old_filtered_value
-        self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject_DictOfVariableFilterSettings = dict([("DataStreamingFrequency_CalculatedFromDedicatedRxThread", dict([("UseMedianFilterFlag", 0), ("UseExponentialSmoothingFilterFlag", 1),("ExponentialSmoothingFilterLambda", 0.05)])),
+        self.LowPassFilterForDictsOfLists_DictOfVariableFilterSettings = dict([("DataStreamingFrequency_CalculatedFromDedicatedRxThread", dict([("UseMedianFilterFlag", 0), ("UseExponentialSmoothingFilterFlag", 1),("ExponentialSmoothingFilterLambda", 0.95)])),
                                                                                                             ("DataStreamingFrequency_CalculatedFromGUIthread", dict([("UseMedianFilterFlag", 0), ("UseExponentialSmoothingFilterFlag", 1), ("ExponentialSmoothingFilterLambda", 0.05)])),
                                                                                                             ("FTmeasurement", dict([("UseMedianFilterFlag", 0), ("UseExponentialSmoothingFilterFlag", 1),("ExponentialSmoothingFilterLambda", self.FTmeasurement_ExponentialSmoothingFilterLambda)])),
                                                                                                             ("FTmeasurementDerivative", dict([("UseMedianFilterFlag", 0), ("UseExponentialSmoothingFilterFlag", 1),("ExponentialSmoothingFilterLambda", self.FTmeasurementDerivative_ExponentialSmoothingFilterLambda)]))])
 
-        self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject_SetupDict = dict([("DictOfVariableFilterSettings", self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject_DictOfVariableFilterSettings)])
+        self.LowPassFilterForDictsOfLists_SetupDict = dict([("DictOfVariableFilterSettings", self.LowPassFilterForDictsOfLists_DictOfVariableFilterSettings)])
 
-        self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject = LowPassFilterForDictsOfLists_ReubenPython2and3Class(self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject_SetupDict)
-        self.LOWPASSFILTER_OPEN_FLAG = self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject.OBJECT_CREATED_SUCCESSFULLY_FLAG
+        self.LowPassFilterForDictsOfLists_Object = LowPassFilterForDictsOfLists_ReubenPython2and3Class(self.LowPassFilterForDictsOfLists_SetupDict)
+        self.LowPassFilterForDictsOfLists_OPEN_FLAG = self.LowPassFilterForDictsOfLists_Object.OBJECT_CREATED_SUCCESSFULLY_FLAG
         #########################################################
 
         #########################################################
-        if self.LOWPASSFILTER_OPEN_FLAG != 1:
-            print("FutekForceTorqueReaderUSB520_ReubenPython3Class __init__: Failed to open LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject.")
+        if self.LowPassFilterForDictsOfLists_OPEN_FLAG != 1:
+            print("FutekForceTorqueReaderUSB520_ReubenPython3Class __init__: Failed to open LowPassFilterForDictsOfLists.")
             return
         #########################################################
 
@@ -604,12 +661,25 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
         #########################################################
         try:
 
-            SuccessFlag = self.InitializeDevice(PrintInfoForDebuggingFlag=1)
+            #########################################################
+            if self.ReadDataViaSerialFlag == 0:
+                SuccessFlag = self.InitializeDeviceViaDLL(PrintInfoForDebuggingFlag=1)
+    
+                if SuccessFlag != 1:
+                    print("FutekForceTorqueReaderUSB520_ReubenPython3Class __init__: self.InitializeDeviceViaDLL() failed.")
+                    return
+            #########################################################
 
-            if SuccessFlag != 1:
-                print("FutekForceTorqueReaderUSB520_ReubenPython3Class __init__: self.InitializeDevice() failed.")
-                return
+            #########################################################
+            else:
 
+                SuccessFlag = self.InitializeDeviceViaSerial(PrintInfoForDebuggingFlag=1)
+
+                if SuccessFlag != 1:
+                    print("FutekForceTorqueReaderUSB520_ReubenPython3Class __init__: self.InitializeDeviceViaSerial() failed.")
+                    return
+            #########################################################
+        
         except:
             exceptions = sys.exc_info()[0]
             print("FutekForceTorqueReaderUSB520_ReubenPython3Class __init__: Exceptions: %s" % exceptions)
@@ -710,6 +780,24 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
     ##########################################################################################################
     ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    def LimitNumber_IntOutputOnly(self, min_val, max_val, test_val):
+        if test_val > max_val:
+            test_val = max_val
+
+        elif test_val < min_val:
+            test_val = min_val
+
+        else:
+            test_val = test_val
+
+        test_val = int(test_val)
+
+        return test_val
     ##########################################################################################################
     ##########################################################################################################
 
@@ -932,10 +1020,10 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
     ##########################################################################################################
     def UpdateVariableFilterSettingsFromExternalProgram(self, VariableNameString, UseMedianFilterFlag, UseExponentialSmoothingFilterFlag, ExponentialSmoothingFilterLambda):
         try:
-            self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject.UpdateVariableFilterSettingsFromExternalProgram(VariableNameString, UseMedianFilterFlag, UseExponentialSmoothingFilterFlag, ExponentialSmoothingFilterLambda)
+            self.LowPassFilterForDictsOfLists_Object.UpdateVariableFilterSettingsFromExternalProgram(VariableNameString, UseMedianFilterFlag, UseExponentialSmoothingFilterFlag, ExponentialSmoothingFilterLambda)
 
-            self.FTmeasurement_ExponentialSmoothingFilterLambda = self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject.GetMostRecentDataDict()["FTmeasurement"]["ExponentialSmoothingFilterLambda"]
-            self.FTmeasurementDerivative_ExponentialSmoothingFilterLambda = self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject.GetMostRecentDataDict()["FTmeasurementDerivative"]["ExponentialSmoothingFilterLambda"]
+            self.FTmeasurement_ExponentialSmoothingFilterLambda = self.LowPassFilterForDictsOfLists_Object.GetMostRecentDataDict()["FTmeasurement"]["ExponentialSmoothingFilterLambda"]
+            self.FTmeasurementDerivative_ExponentialSmoothingFilterLambda = self.LowPassFilterForDictsOfLists_Object.GetMostRecentDataDict()["FTmeasurementDerivative"]["ExponentialSmoothingFilterLambda"]
 
         except:
             exceptions = sys.exc_info()[0]
@@ -954,7 +1042,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
             if self.DataStreamingDeltaT_CalculatedFromDedicatedRxThread != 0.0:
                 DataStreamingFrequency_CalculatedFromDedicatedRxThread_TEMP = 1.0/self.DataStreamingDeltaT_CalculatedFromDedicatedRxThread
 
-                ResultsDict = self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject.AddDataDictFromExternalProgram(dict([("DataStreamingFrequency_CalculatedFromDedicatedRxThread", DataStreamingFrequency_CalculatedFromDedicatedRxThread_TEMP)]))
+                ResultsDict = self.LowPassFilterForDictsOfLists_Object.AddDataDictFromExternalProgram(dict([("DataStreamingFrequency_CalculatedFromDedicatedRxThread", DataStreamingFrequency_CalculatedFromDedicatedRxThread_TEMP)]))
                 self.DataStreamingFrequency_CalculatedFromDedicatedRxThread = ResultsDict["DataStreamingFrequency_CalculatedFromDedicatedRxThread"]["Filtered_MostRecentValuesList"][0]
 
             self.LoopCounter_CalculatedFromDedicatedRxThread = self.LoopCounter_CalculatedFromDedicatedRxThread + 1
@@ -978,7 +1066,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
             if self.DataStreamingDeltaT_CalculatedFromGUIthread != 0.0:
                 DataStreamingFrequency_CalculatedFromGUIthread_TEMP = 1.0/self.DataStreamingDeltaT_CalculatedFromGUIthread
 
-                ResultsDict = self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject.AddDataDictFromExternalProgram(dict([("DataStreamingFrequency_CalculatedFromGUIthread", DataStreamingFrequency_CalculatedFromGUIthread_TEMP)]))
+                ResultsDict = self.LowPassFilterForDictsOfLists_Object.AddDataDictFromExternalProgram(dict([("DataStreamingFrequency_CalculatedFromGUIthread", DataStreamingFrequency_CalculatedFromGUIthread_TEMP)]))
                 self.DataStreamingFrequency_CalculatedFromGUIthread = ResultsDict["DataStreamingFrequency_CalculatedFromGUIthread"]["Filtered_MostRecentValuesList"][0]
 
             self.LoopCounter_CalculatedFromDedicatedGUIthread = self.LoopCounter_CalculatedFromDedicatedGUIthread + 1
@@ -994,7 +1082,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
-    def InitializeDevice(self, PrintInfoForDebuggingFlag = 0):
+    def InitializeDeviceViaDLL(self, PrintInfoForDebuggingFlag = 0):
 
         ##########################################################################################################
         ##########################################################################################################
@@ -1003,6 +1091,8 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
             ######################################################################################################
             ######################################################################################################
+            print("Entering InitializeDeviceViaDLL.")
+
             self.FUTEK_USB_DLL_Object = FUTEK_USB_DLL.USB_DLL()
             self.FUTEK_USB_DLL_Object.Open_Device_Connection(self.SerialNumber_Desired)
 
@@ -1031,56 +1121,56 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
                         break
 
                 except:
-                    print("*** InitializeDevice: Calling 'Get_Type_of_Board' again, RequestCounter = " + str(RequestCounter) + " ***")
+                    print("*** InitializeDeviceViaDLL: Calling 'Get_Type_of_Board' again, RequestCounter = " + str(RequestCounter) + " ***")
                     RequestCounter = RequestCounter + 1
                     time.sleep(0.25)
 
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, TypeOfBoard_ActualHexValue: " + str(self.TypeOfBoard_ActualHexValue) + ", type: " + str(type(self.TypeOfBoard_ActualHexValue)))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, TypeOfBoard_ActualHexValue: " + str(self.TypeOfBoard_ActualHexValue) + ", type: " + str(type(self.TypeOfBoard_ActualHexValue)))
             ######################################################################################################
 
             ######################################################################################################
             self.TypeOfBoard_ActualEnglishNameString = self.TypeOfBoard_HexValueAsKey_Dict[self.TypeOfBoard_ActualHexValue]
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, TypeOfBoard_ActualEnglishNameString: " + str(self.TypeOfBoard_ActualEnglishNameString) + ", type: " + str(type(self.TypeOfBoard_ActualEnglishNameString)))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, TypeOfBoard_ActualEnglishNameString: " + str(self.TypeOfBoard_ActualEnglishNameString) + ", type: " + str(type(self.TypeOfBoard_ActualEnglishNameString)))
 
             if self.TypeOfBoard_ActualEnglishNameString != self.TypeOfBoard_EnglishNameString:
-                print("InitializeDevice, TypeOfBoard_EnglishNameString doesn not match Actual.")
+                print("InitializeDeviceViaDLL, TypeOfBoard_EnglishNameString doesn not match Actual.")
                 return 0
             ######################################################################################################
 
             ######################################################################################################
             self.DecimalPoint = float(self.FUTEK_USB_DLL_Object.Get_Decimal_Point(self.DeviceHandle, self.DeviceChannel)) #Get_Decimal_Point sets the precision of the memory storage for proper conversion of ADC to Torque values.
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, DecimalPoint: " + str(self.DecimalPoint) + ", type: " + str(type(self.DecimalPoint)))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, DecimalPoint: " + str(self.DecimalPoint) + ", type: " + str(type(self.DecimalPoint)))
 
             self.DecimalPoint_ConversionFactor = pow(10.0, self.DecimalPoint)
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, DecimalPoint_ConversionFactor: " + str(self.DecimalPoint_ConversionFactor) + ", type: " + str(type(self.DecimalPoint_ConversionFactor)))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, DecimalPoint_ConversionFactor: " + str(self.DecimalPoint_ConversionFactor) + ", type: " + str(type(self.DecimalPoint_ConversionFactor)))
             ######################################################################################################
 
             ######################################################################################################
             self.Rotation_PulsesPerRotation_ActualValue = float(self.FUTEK_USB_DLL_Object.Get_Pulses_Per_Rotation(self.DeviceHandle, self.DeviceChannel))
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, Rotation_PulsesPerRotation_ActualValue: " + str(self.Rotation_PulsesPerRotation_ActualValue) + ", type: " + str(type(self.Rotation_PulsesPerRotation_ActualValue)))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, Rotation_PulsesPerRotation_ActualValue: " + str(self.Rotation_PulsesPerRotation_ActualValue) + ", type: " + str(type(self.Rotation_PulsesPerRotation_ActualValue)))
 
             self.AngularResolution_ActualValue_Deg = 360.0 / (self.Rotation_PulsesPerRotation_ActualValue * 4.0 * 10.0)  # *4.0 is quadrature, and *10 appears to be their internal precision scaling
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, AngularResolution_ActualValue_Deg: " + str(self.AngularResolution_ActualValue_Deg) + ", type: " + str(type(self.AngularResolution_ActualValue_Deg)))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, AngularResolution_ActualValue_Deg: " + str(self.AngularResolution_ActualValue_Deg) + ", type: " + str(type(self.AngularResolution_ActualValue_Deg)))
             ######################################################################################################
 
             ######################################################################################################
             self.Offset_Load = float(self.FUTEK_USB_DLL_Object.Get_Offset_Load(self.DeviceHandle, self.DeviceChannel)) #Get_Offset_Load means the load that was used for factory calibration at no-load.
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, Offset_Load: " + str(self.Offset_Load) + ", type: " + str(type(self.Offset_Load)))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, Offset_Load: " + str(self.Offset_Load) + ", type: " + str(type(self.Offset_Load)))
             ######################################################################################################
 
             ######################################################################################################
             self.Offset_Value = float(self.FUTEK_USB_DLL_Object.Get_Offset_Value(self.DeviceHandle, self.DeviceChannel)) #Get_Offset_Value means the ADC value without load on the sensor, like a zero offset, calibrated at factory at no-load.
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, Offset_Value: " + str(self.Offset_Value) + ", type: " + str(type(self.Offset_Value)))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, Offset_Value: " + str(self.Offset_Value) + ", type: " + str(type(self.Offset_Value)))
             ######################################################################################################
 
             ######################################################################################################
             self.Fullscale_Load = float(self.FUTEK_USB_DLL_Object.Get_Fullscale_Load(self.DeviceHandle, self.DeviceChannel)) #Get_Fullscale_Load means the sensor's full-capacity that was used for calibration at factory.
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, Fullscale_Load: " + str(self.Fullscale_Load) + ", type: " + str(type(self.Fullscale_Load)))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, Fullscale_Load: " + str(self.Fullscale_Load) + ", type: " + str(type(self.Fullscale_Load)))
             ######################################################################################################
 
             ######################################################################################################
             self.Fullscale_Value = float(self.FUTEK_USB_DLL_Object.Get_Fullscale_Value(self.DeviceHandle, self.DeviceChannel)) #Get_Fullscale_Value means the ADC value corresponding to the full-load/capacity calibration at the factory.
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, Fullscale_Value: " + str(self.Fullscale_Value) + ", type: " + str(type(self.Fullscale_Value)))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, Fullscale_Value: " + str(self.Fullscale_Value) + ", type: " + str(type(self.Fullscale_Value)))
             ######################################################################################################
 
             ######################################################################################################
@@ -1089,28 +1179,28 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
             for PointIndex_CW in [1, 2, 3, 4, 5]:
                 self.LoadingPoint_CW.append(float(self.FUTEK_USB_DLL_Object.Get_Loading_Point(self.DeviceHandle, PointIndex_CW, self.DeviceChannel)))
                 self.LoadOfLoadingPoint_CW.append(float(self.FUTEK_USB_DLL_Object.Get_Load_of_Loading_Point(self.DeviceHandle, PointIndex_CW, self.DeviceChannel)))
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, LoadOfLoadingPoint: " + str(self.LoadOfLoadingPoint_CW) + ", LoadingPoint_CW: " + str(self.LoadingPoint_CW))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, LoadOfLoadingPoint: " + str(self.LoadOfLoadingPoint_CW) + ", LoadingPoint_CW: " + str(self.LoadingPoint_CW))
 
             self.LoadingPoint_CCW = []
             self.LoadOfLoadingPoint_CCW = []
             for PointIndex_CCW in [8, 9, 10, 11, 12]:
                 self.LoadingPoint_CCW.append(float(self.FUTEK_USB_DLL_Object.Get_Loading_Point(self.DeviceHandle, PointIndex_CCW, self.DeviceChannel)))
                 self.LoadOfLoadingPoint_CCW.append(float(self.FUTEK_USB_DLL_Object.Get_Load_of_Loading_Point(self.DeviceHandle, PointIndex_CCW, self.DeviceChannel)))
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, LoadOfLoadingPoint: " + str(self.LoadOfLoadingPoint_CCW) + ", LoadingPoint_CCW: " + str(self.LoadingPoint_CCW))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, LoadOfLoadingPoint: " + str(self.LoadOfLoadingPoint_CCW) + ", LoadingPoint_CCW: " + str(self.LoadingPoint_CCW))
             ######################################################################################################
 
             ######################################################################################################
             self.ListOfCalibrationPoints_Load_CW = [self.Offset_Load] + self.LoadOfLoadingPoint_CW + [self.Fullscale_Load]
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, ListOfCalibrationPoints_Load_CW: " + str(self.ListOfCalibrationPoints_Load_CW))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, ListOfCalibrationPoints_Load_CW: " + str(self.ListOfCalibrationPoints_Load_CW))
 
             self.ListOfCalibrationPoints_Value_CW = [self.Offset_Value] + self.LoadingPoint_CW + [self.Fullscale_Value]
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, ListOfCalibrationPoints_Value_CW: " + str(self.ListOfCalibrationPoints_Value_CW))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, ListOfCalibrationPoints_Value_CW: " + str(self.ListOfCalibrationPoints_Value_CW))
 
             self.ListOfCalibrationPoints_Load_CCW = [self.Offset_Load] + self.LoadOfLoadingPoint_CCW + [self.Fullscale_Load]
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, ListOfCalibrationPoints_Load_CCW: " + str(self.ListOfCalibrationPoints_Load_CCW))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, ListOfCalibrationPoints_Load_CCW: " + str(self.ListOfCalibrationPoints_Load_CCW))
 
             self.ListOfCalibrationPoints_Value_CCW = [self.Offset_Value] + self.LoadingPoint_CCW + [self.Fullscale_Value]
-            if PrintInfoForDebuggingFlag == 1: print("InitializeDevice, ListOfCalibrationPoints_Value_CCW: " + str(self.ListOfCalibrationPoints_Value_CCW))
+            if PrintInfoForDebuggingFlag == 1: print("InitializeDeviceViaDLL, ListOfCalibrationPoints_Value_CCW: " + str(self.ListOfCalibrationPoints_Value_CCW))
             ######################################################################################################
 
             ######################################################################################################
@@ -1132,7 +1222,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
             ######################################################################################################
             if self.ResetAngleOnInitializationFlag == 1:
                 self.FUTEK_USB_DLL_Object.Reset_Angle(self.DeviceHandle, self.DeviceChannel)
-                print("@@@@@@@@@@@ InitializeDevice, self.FUTEK_USB_DLL_Object.Reset_Angle event fired! @@@@@@@@@@@")
+                print("@@@@@@@@@@@ InitializeDeviceViaDLL, self.FUTEK_USB_DLL_Object.Reset_Angle event fired! @@@@@@@@@@@")
                 time.sleep(4.0)
             ######################################################################################################
 
@@ -1152,7 +1242,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
         ##########################################################################################################
         except:
             exceptions = sys.exc_info()[0]
-            print("InitializeDevice: Exceptions: %s" % exceptions)
+            print("InitializeDeviceViaDLL: Exceptions: %s" % exceptions)
             return 0
             #traceback.print_exc()
         ##########################################################################################################
@@ -1161,6 +1251,245 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
     ##########################################################################################################
     ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    def InitializeDeviceViaSerial(self, PrintInfoForDebuggingFlag = 0):
+
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+        try:
+
+            ######################################################################################################
+            ######################################################################################################
+
+            print("Entering InitializeDeviceViaSerial.")
+
+            ######################################################################################################
+            self.Rotation_PulsesPerRotation_ActualValue = 360.0
+            self.AngularResolution_ActualValue_Deg = 0.025
+            ######################################################################################################
+
+            ######################################################################################################
+            if ftd2xx_IMPORTED_FLAG == 1:
+                self.SetAllFTDIdevicesLatencyTimer()
+            ######################################################################################################
+
+            ######################################################################################################
+            self.DesiredSerialNumber_USBtoSerialConverter = self.SerialNumber_Desired
+            self.FindAssignAndOpenSerialPort()
+            ######################################################################################################
+
+            ######################################################################################################
+            if self.SerialConnectedFlag != 1:
+                return 0
+
+            else:
+                return 1
+            ######################################################################################################
+
+            ######################################################################################################
+            ######################################################################################################
+
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+        except:
+            exceptions = sys.exc_info()[0]
+            print("InitializeDeviceViaSerial: Exceptions: %s" % exceptions)
+            #return 0
+            traceback.print_exc()
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    def SetAllFTDIdevicesLatencyTimer(self, FTDI_LatencyTimer_ToBeSet = 1):
+
+        FTDI_LatencyTimer_ToBeSet = self.LimitNumber_IntOutputOnly(1, 16, FTDI_LatencyTimer_ToBeSet)
+
+        FTDI_DeviceList = ftd2xx.listDevices()
+        print("FTDI_DeviceList: " + str(FTDI_DeviceList))
+
+        if FTDI_DeviceList != None:
+
+            for Index, FTDI_SerialNumber in enumerate(FTDI_DeviceList):
+
+                #################################
+                try:
+                    if sys.version_info[0] < 3: #Python 2
+                        FTDI_SerialNumber = str(FTDI_SerialNumber)
+                    else:
+                        FTDI_SerialNumber = FTDI_SerialNumber.decode('utf-8')
+
+                    FTDI_Object = ftd2xx.open(Index)
+                    FTDI_DeviceInfo = FTDI_Object.getDeviceInfo()
+
+                    '''
+                    print("FTDI device with serial number " +
+                          str(FTDI_SerialNumber) +
+                          ", DeviceInfo: " +
+                          str(FTDI_DeviceInfo))
+                    '''
+
+                except:
+                    exceptions = sys.exc_info()[0]
+                    print("FTDI device with serial number " + str(FTDI_SerialNumber) + ", could not open FTDI device, Exceptions: %s" % exceptions)
+                #################################
+
+                #################################
+                try:
+                    FTDI_Object.setLatencyTimer(FTDI_LatencyTimer_ToBeSet)
+                    time.sleep(0.005)
+
+                    FTDI_LatencyTimer_ReceivedFromDevice = FTDI_Object.getLatencyTimer()
+                    FTDI_Object.close()
+
+                    if FTDI_LatencyTimer_ReceivedFromDevice == FTDI_LatencyTimer_ToBeSet:
+                        SuccessString = "succeeded!"
+                    else:
+                        SuccessString = "failed!"
+
+                    print("FTDI device with serial number " +
+                          str(FTDI_SerialNumber) +
+                          " commanded setLatencyTimer(" +
+                          str(FTDI_LatencyTimer_ToBeSet) +
+                          "), and getLatencyTimer() returned: " +
+                          str(FTDI_LatencyTimer_ReceivedFromDevice) +
+                          ", so command " +
+                          SuccessString)
+
+                except:
+                    exceptions = sys.exc_info()[0]
+                    print("FTDI device with serial number " + str(FTDI_SerialNumber) + ", could not set/get Latency Timer, Exceptions: %s" % exceptions)
+                #################################
+
+        else:
+            print("SetAllFTDIdevicesLatencyTimer ERROR: FTDI_DeviceList is empty, cannot proceed.")
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    def FindAssignAndOpenSerialPort(self):
+        self.MyPrint_WithoutLogFile("FindAssignAndOpenSerialPort: Finding all serial ports...")
+
+        ##############
+        SerialNumberToCheckAgainst = str(self.DesiredSerialNumber_USBtoSerialConverter)
+        if self.my_platform == "linux" or self.my_platform == "pi":
+            SerialNumberToCheckAgainst = SerialNumberToCheckAgainst[:-1] #The serial number gets truncated by one digit in linux
+        else:
+            SerialNumberToCheckAgainst = SerialNumberToCheckAgainst
+        ##############
+
+        ##############
+        SerialPortsAvailable_ListPortInfoObjetsList = serial.tools.list_ports.comports()
+        ##############
+
+        ###########################################################################
+        SerialNumberFoundFlag = 0
+        for SerialPort_ListPortInfoObjet in SerialPortsAvailable_ListPortInfoObjetsList:
+
+            SerialPortName = SerialPort_ListPortInfoObjet[0]
+            Description = SerialPort_ListPortInfoObjet[1]
+            VID_PID_SerialNumber_Info = SerialPort_ListPortInfoObjet[2]
+            self.MyPrint_WithoutLogFile(SerialPortName + ", " + Description + ", " + VID_PID_SerialNumber_Info)
+
+            if VID_PID_SerialNumber_Info.find(SerialNumberToCheckAgainst) != -1 and SerialNumberFoundFlag == 0: #Haven't found a match in a prior loop
+                self.SerialPortNameCorrespondingToCorrectSerialNumber = SerialPortName
+                SerialNumberFoundFlag = 1 #To ensure that we only get one device
+                self.MyPrint_WithoutLogFile("FindAssignAndOpenSerialPort: Found serial number " + SerialNumberToCheckAgainst + " on port " + self.SerialPortNameCorrespondingToCorrectSerialNumber)
+                #WE DON'T BREAK AT THIS POINT BECAUSE WE WANT TO PRINT ALL SERIAL DEVICE NUMBERS WHEN PLUGGING IN A DEVICE WITH UNKNOWN SERIAL NUMBE RFOR THE FIRST TIME.
+        ###########################################################################
+
+        ###########################################################################
+        if(self.SerialPortNameCorrespondingToCorrectSerialNumber != ""): #We found a match
+
+            try: #Will succeed as long as another program hasn't already opened the serial line.
+
+                self.SerialObject = serial.Serial(self.SerialPortNameCorrespondingToCorrectSerialNumber, self.SerialBaudRate, timeout=self.SerialTimeoutSeconds, parity=self.SerialParity, stopbits=self.SerialStopBits, bytesize=self.SerialByteSize)
+
+                if self.my_platform == "windows":
+                    self.SerialObject.set_buffer_size(rx_size=self.SerialRxBufferSize, tx_size=self.SerialTxBufferSize) #function only exists in Windows
+
+                self.SerialConnectedFlag = 1
+                self.MyPrint_WithoutLogFile("FindAssignAndOpenSerialPort: Serial is connected and open on port: " + self.SerialPortNameCorrespondingToCorrectSerialNumber)
+
+            except:
+                self.SerialConnectedFlag = 0
+                self.MyPrint_WithoutLogFile("FindAssignAndOpenSerialPort: ERROR: Serial is physically plugged in but IS IN USE BY ANOTHER PROGRAM.")
+
+        else:
+            self.SerialConnectedFlag = -1
+            self.MyPrint_WithoutLogFile("FindAssignAndOpenSerialPort: ERROR: Could not find the serial device. IS IT PHYSICALLY PLUGGED IN?")
+        ###########################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    def SendSerialStrToTx(self, SerialStrToTx):
+
+        if self.SerialConnectedFlag == 1:
+
+            try:
+
+                if SerialStrToTx[-1] != "\r":
+                    SerialStrToTx = SerialStrToTx + "\r"
+
+                SerialStrToTx = SerialStrToTx
+
+                self.SerialObject.write(SerialStrToTx.encode('utf-8'))
+
+                self.SerialStrToTx_LAST_SENT = SerialStrToTx
+
+                self.MostRecentDataDict["SerialStrToTx_LAST_SENT"] = self.SerialStrToTx_LAST_SENT
+
+            except:
+                exceptions = sys.exc_info()[0]
+                print("SendSerialStrToTx, exceptions: %s" % exceptions)
+
+        else:
+            print("SendSerialStrToTx: Error, SerialConnectedFlag = 0, cannot issue command.")
+            return 0
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    def ConvertBytesObjectToString(self, InputBytesObject):
+
+        try:
+            if sys.version_info[0] < 3:  # Python 2
+                OutputString = str(InputBytesObject)
+
+            else:
+                OutputString = InputBytesObject.decode('utf-8')
+
+            return OutputString
+
+        except:
+            exceptions = sys.exc_info()[0]
+            print("ConvertBytesObjectToString, Exceptions: %s" % exceptions)
+            #traceback.print_exc()
+            return ""
+
     ##########################################################################################################
     ##########################################################################################################
 
@@ -1185,7 +1514,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
             ##########################################################################################################
 
             ##########################################################################################################
-            ConvertedValue_Deg = InputAngle_EncoderCounts*(360./(10.0*4.0*self.Rotation_PulsesPerRotation_ActualValue)) #FUTEK puts a random x10
+            ConvertedValue_Deg = InputAngle_EncoderCounts*(360.0/(10.0*4.0*self.Rotation_PulsesPerRotation_ActualValue)) #FUTEK puts a random x10
 
             ConvertedValue_Rad = ConvertedValue_Deg*(math.pi/180.0)
             ConvertedValue_Rev = ConvertedValue_Deg*(1.0/360.0)
@@ -1211,7 +1540,68 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
         ##########################################################################################################
         except:
             exceptions = sys.exc_info()[0]
-            print("ConvertPositionToAllUnits InputAngle_EncoderCounts: " + str(InputAngle_EncoderCounts) + ", exceptions: %s" % exceptions)
+            print("ConvertAngleFromEncoderTicksToAllUnits InputAngle_EncoderCounts: " + str(InputAngle_EncoderCounts) + ", exceptions: %s" % exceptions)
+            #traceback.print_exc()
+            return ConvertedValuesDict
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    def ConvertAngleFromSerialRxDegToAllUnits(self, InputAngle_Deg):
+
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+        try:
+
+            ##########################################################################################################
+            ConvertedValuesDict =  dict([("EncoderTicks", -11111.0),
+                                        ("Deg", -11111.0),
+                                        ("Rad", -11111.0),
+                                        ("Rev", -11111.0)])
+
+            InputAngle_Deg = float(InputAngle_Deg)
+            ##########################################################################################################
+
+            ##########################################################################################################
+            ConvertedValue_Deg = InputAngle_Deg
+
+            ConvertedValue_EncoderTicks = 4.0*self.Rotation_PulsesPerRotation_ActualValue*InputAngle_Deg/360.0
+
+            ConvertedValue_Rad = ConvertedValue_Deg*(math.pi/180.0)
+            ConvertedValue_Rev = ConvertedValue_Deg*(1.0/360.0)
+            ##########################################################################################################
+
+            ##########################################################################################################
+            ConvertedValuesDict = dict([("EncoderTicks", ConvertedValue_EncoderTicks),
+                                        ("Deg", ConvertedValue_Deg),
+                                        ("Rad", ConvertedValue_Rad),
+                                        ("Rev", ConvertedValue_Rev)])
+            ##########################################################################################################'
+
+            ##########################################################################################################
+            return ConvertedValuesDict
+            ##########################################################################################################
+
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+        except:
+            exceptions = sys.exc_info()[0]
+            print("ConvertAngleFromSerialRxDegToAllUnits InputAngle_Deg: " + str(InputAngle_Deg) + ", exceptions: %s" % exceptions)
             #traceback.print_exc()
             return ConvertedValuesDict
         ##########################################################################################################
@@ -1273,7 +1663,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
         except:
             exceptions = sys.exc_info()[0]
             print("ConvertAngularSpeedFromRPMtoAllUnits InputAngle_EncoderCounts: " + str(InputAngularSpeed_RPM) + ", exceptions: %s" % exceptions)
-            #traceback.print_exc()
+            traceback.print_exc()
             return ConvertedValuesDict
         ##########################################################################################################
         ##########################################################################################################
@@ -1347,9 +1737,13 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
         self.DedicatedRxThread_StillRunningFlag = 1
 
         self.StartingTime_CalculatedFromDedicatedRxThread = self.getPreciseSecondsTimeStampString()
+
+        self.FlushSerial_EventNeedsToBeFiredFlag = 1
         #########################################################
         #########################################################
 
+        ##########################################################################################################
+        ##########################################################################################################
         ##########################################################################################################
         ##########################################################################################################
         ##########################################################################################################
@@ -1363,13 +1757,19 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
             ##########################################################################################################
             ##########################################################################################################
             ##########################################################################################################
+            ##########################################################################################################
+            ##########################################################################################################
             self.CurrentTime_CalculatedFromDedicatedRxThread = self.getPreciseSecondsTimeStampString() - self.StartingTime_CalculatedFromDedicatedRxThread
             ##########################################################################################################
             ##########################################################################################################
             ##########################################################################################################
             ##########################################################################################################
             ##########################################################################################################
+            ##########################################################################################################
+            ##########################################################################################################
 
+            ##########################################################################################################
+            ##########################################################################################################
             ##########################################################################################################
             ##########################################################################################################
             ##########################################################################################################
@@ -1381,32 +1781,121 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
                 ##########################################################################################################
                 ##########################################################################################################
                 ##########################################################################################################
-
-                ##########################################################################################################
-                ##########################################################################################################
-                ADC_RawValue = float(self.FUTEK_USB_DLL_Object.Normal_Data_Request(self.DeviceHandle, self.DeviceChannel))
-                ForceOrTorque_CalibratedValue = (ADC_RawValue - self.Offset_Value) * ((self.Fullscale_Load - self.Offset_Load) / (self.Fullscale_Value - self.Offset_Value)) / self.DecimalPoint_ConversionFactor
-                # Linear interpolation between two points (from https://media.futek.com/content/futek/files/pdf/Manuals_and_Technical_Documents/USBLabVIEWExampleGuide.pdf)
-                # Note that there is also an interpolation that involves the 5-point calibration that isn't included here.
                 ##########################################################################################################
                 ##########################################################################################################
 
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+                if self.ReadDataViaSerialFlag == 0:
+                    ADC_RawValue = float(self.FUTEK_USB_DLL_Object.Normal_Data_Request(self.DeviceHandle, self.DeviceChannel))
+                    ForceOrTorque_CalibratedValue = (ADC_RawValue - self.Offset_Value) * ((self.Fullscale_Load - self.Offset_Load) / (self.Fullscale_Value - self.Offset_Value)) / self.DecimalPoint_ConversionFactor
+                    # Linear interpolation between two points (from https://media.futek.com/content/futek/files/pdf/Manuals_and_Technical_Documents/USBLabVIEWExampleGuide.pdf)
+                    # Note that there is also an interpolation that involves the 5-point calibration that isn't included here.
+                    self.UpdateFrequencyCalculation_DedicatedRxThread_Filtered()
+                
+                else:
+
+                    ##########################################################################################################
+                    ##########################################################################################################
+                    ##########################################################################################################
+                    if self.FlushSerial_EventNeedsToBeFiredFlag == 1:
+                        self.SerialObject.reset_input_buffer()
+                        print("%%%%%%%%%% FlushSerial_EventNeedsToBeFiredFlag event fired! %%%%%%%%%%")
+                        self.FlushSerial_EventNeedsToBeFiredFlag = 0
+                    ##########################################################################################################
+                    ##########################################################################################################
+                    ##########################################################################################################
+
+                    ##########################################################################################################
+                    ##########################################################################################################
+                    ##########################################################################################################
+                    RxMessage = self.SerialObject.read_until(b'\n')
+                    RxMessageString = self.ConvertBytesObjectToString(RxMessage)
+                    RxMessageString = RxMessageString.replace("\r\n", "")
+                    RxMessageStringList = RxMessageString.split(" ")  # Split apart single string into list based on a space (" ").
+                    RxMessageStringList = list(filter(None, RxMessageStringList))  # Remove list elements that are empty
+
+                    ##########################################################################################################
+                    ##########################################################################################################
+                    if self.PrintAllReceivedSerialMessageForDebuggingFlag == 1:
+                        print("RxMessage: " + str(RxMessage) + "NumBytes = " + str(len(RxMessage)) + ", Type = " + str(type(RxMessageStringList)) + ", LenOfList = " + str(len(RxMessageStringList)) + ", Message = " + str(RxMessageStringList))
+                    ##########################################################################################################
+                    ##########################################################################################################
+
+                    try:
+                        if len(RxMessageStringList) == 2:
+
+                            ##########################################################################################################
+                            ##########################################################################################################
+                            if RxMessageStringList[1] == "N-m":
+                                ForceOrTorque_CalibratedValue = float(RxMessageStringList[0])  #['-0.00190', 'N-m']
+
+                                ##########################################################################################################
+                                self.UpdateFrequencyCalculation_DedicatedRxThread_Filtered()
+                                ##########################################################################################################
+
+                            elif RxMessageStringList[1] == "deg":
+                                self.AngleValue_Deg = float(RxMessageStringList[0])  #['+0.00000', 'deg']
+                                self.AngleValue_AllUnitsDict = self.ConvertAngleFromSerialRxDegToAllUnits(self.AngleValue_Deg)
+
+                            elif RxMessageStringList[1] == "rpm":
+                                self.AngularSpeedValue_RevPerMin = float(RxMessageStringList[0])
+                                self.AngularSpeedValue_AllUnitsDict = self.ConvertAngularSpeedFromRPMtoAllUnits(self.AngularSpeedValue_RevPerMin)
+
+                            elif RxMessageStringList[1] == "KW":
+                                pass #['+0.00000', 'rpm']
+
+                            else:
+                                pass #['+0.00000', 'KW']
+
+                            ##########################################################################################################
+                            ##########################################################################################################
+
+                    except:
+                        exceptions = sys.exc_info()[0]
+                        print("DedicatedRxThread, RxMessage: " + str(RxMessage) + ", Exceptions: %s" % exceptions)
+                        traceback.print_exc()
+
+                    ##########################################################################################################
+                    ##########################################################################################################
+                    ##########################################################################################################
+
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+
+                ##########################################################################################################
+                ##########################################################################################################
                 ##########################################################################################################
                 ##########################################################################################################
                 if self.PrintForceTorqueValuesFlag == 1:
                     print("ADC_RawValue: " + str(ADC_RawValue) + ", ForceOrTorque_CalibratedValue: " + str(ForceOrTorque_CalibratedValue))
                 ##########################################################################################################
                 ##########################################################################################################
-
-                ##########################################################################################################
-                ##########################################################################################################
-                ResultsDict = self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject.AddDataDictFromExternalProgram(dict([("FTmeasurement", ForceOrTorque_CalibratedValue)]))
-
-                self.CurrentFTmeasurement_Raw = ResultsDict["FTmeasurement"]["Raw_MostRecentValuesList"][0]
-                self.CurrentFTmeasurement_Filtered = ResultsDict["FTmeasurement"]["Filtered_MostRecentValuesList"][0]
                 ##########################################################################################################
                 ##########################################################################################################
 
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+                try:
+                    ResultsDict = self.LowPassFilterForDictsOfLists_Object.AddDataDictFromExternalProgram(dict([("FTmeasurement", ForceOrTorque_CalibratedValue)]))
+
+                    self.CurrentFTmeasurement_Raw = ResultsDict["FTmeasurement"]["Raw_MostRecentValuesList"][0]
+                    self.CurrentFTmeasurement_Filtered = ResultsDict["FTmeasurement"]["Filtered_MostRecentValuesList"][0]
+                except:
+                    pass
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+
+                ##########################################################################################################
+                ##########################################################################################################
                 ##########################################################################################################
                 ##########################################################################################################
                 if self.ZeroAndSnapshotData_OPEN_FLAG == 1:
@@ -1414,9 +1903,12 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
                     if self.ResetTare_EventNeedsToBeFiredFlag == 1:
 
                         ##########################################################################################################
+                        ##########################################################################################################
+                        ##########################################################################################################
                         if self.ResetTare_EventIsCurrentlyBeingExecutedFlag == 0:
 
-                            ################################################### START the tare process
+                            ########################################################################################################## START the tare process
+                            ##########################################################################################################
                             self.ResetTare_TimeOfLastEvent = self.CurrentTime_CalculatedFromDedicatedRxThread
 
                             self.ResetTare_EventHasHappenedFlag = 0
@@ -1424,36 +1916,55 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
                             self.ZeroAndSnapshotData_Object.ZeroAllVariables()
                             print("FutekForceTorqueReaderUSB520_ReubenPython3Class: Started tare process.")
-                            ###################################################
+                            ##########################################################################################################
+                            ##########################################################################################################
 
                         ##########################################################################################################
+                        ##########################################################################################################
+                        ##########################################################################################################
 
+                        ##########################################################################################################
+                        ##########################################################################################################
                         ##########################################################################################################
                         else:
 
                             if self.CurrentTime_CalculatedFromDedicatedRxThread - self.ResetTare_TimeOfLastEvent >= 1.1*self.DataCollectionDurationInSecondsForSnapshottingAndZeroing:
 
-                                ###################################################
+                                ##########################################################################################################
+                                ##########################################################################################################
                                 self.ResetTare_EventHasHappenedFlag = 1
                                 self.ResetTare_EventIsCurrentlyBeingExecutedFlag = 0
 
                                 self.ResetTare_EventNeedsToBeFiredFlag = 0
                                 print("FutekForceTorqueReaderUSB520_ReubenPython3Class: Ended tare process.")
-                                ###################################################
+                                ##########################################################################################################
+                                ##########################################################################################################
 
+                        ##########################################################################################################
+                        ##########################################################################################################
                         ##########################################################################################################
 
                 ##########################################################################################################
                 ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
 
+                ##########################################################################################################
+                ##########################################################################################################
                 ##########################################################################################################
                 ##########################################################################################################
                 if self.ZeroAndSnapshotData_OPEN_FLAG == 1:
 
                     ##########################################################################################################
+                    ##########################################################################################################
+                    ##########################################################################################################
                     self.ZeroAndSnapshotData_Object.CheckStateMachine()
                     ##########################################################################################################
+                    ##########################################################################################################
+                    ##########################################################################################################
 
+                    ##########################################################################################################
+                    ##########################################################################################################
                     ##########################################################################################################
                     FTmeasurement_ListOfDictsAsInputToZeroingObject = [dict([("Variable_Name", "CurrentFTmeasurement"),
                                                                              ("Raw_CurrentValue", self.CurrentFTmeasurement_Raw),
@@ -1469,46 +1980,65 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
                         self.CurrentFTmeasurement_Raw = self.ZeroAndSnapshotData_MostRecentDict_OnlyVariablesAndValuesDictOfDicts["CurrentFTmeasurement"]["Raw_CurrentValue_Zeroed"]
                         self.CurrentFTmeasurement_Filtered = self.ZeroAndSnapshotData_MostRecentDict_OnlyVariablesAndValuesDictOfDicts["CurrentFTmeasurement"]["Filtered_CurrentValue_Zeroed"]
                     ##########################################################################################################
+                    ##########################################################################################################
+                    ##########################################################################################################
 
+                ##########################################################################################################
+                ##########################################################################################################
                 ##########################################################################################################
                 ##########################################################################################################
 
                 ########################################################################################################## Calculate derivative
                 ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
                 try: #in case there's a division-by-zero.
 
+                    ##########################################################################################################
+                    ##########################################################################################################
                     ##########################################################################################################
                     if self.DataStreamingFrequency_CalculatedFromDedicatedRxThread > 0.0:
                         FTmeasurementDerivative_Raw_TEMP = (self.CurrentFTmeasurement_Filtered - self.LastFTmeasurement_Filtered)/(1.0/self.DataStreamingFrequency_CalculatedFromDedicatedRxThread) #We also filter DataStreamingFrequency_CalculatedFromDedicatedRxThread
 
-                        ResultsDict = self.LowPassFilterForDictsOfLists_ReubenPython2and3ClassObject.AddDataDictFromExternalProgram(dict([("FTmeasurementDerivative", FTmeasurementDerivative_Raw_TEMP)]))
+                        ResultsDict = self.LowPassFilterForDictsOfLists_Object.AddDataDictFromExternalProgram(dict([("FTmeasurementDerivative", FTmeasurementDerivative_Raw_TEMP)]))
 
                         self.CurrentFTmeasurementDerivative_Raw = ResultsDict["FTmeasurementDerivative"]["Raw_MostRecentValuesList"][0]
                         self.CurrentFTmeasurementDerivative_Filtered = ResultsDict["FTmeasurementDerivative"]["Filtered_MostRecentValuesList"][0]
+                    ##########################################################################################################
+                    ##########################################################################################################
                     ##########################################################################################################
 
                 except:
                     pass
                 ##########################################################################################################
                 ##########################################################################################################
-
-                ##########################################################################################################
-                ##########################################################################################################
-                if self.LoopCounter_CalculatedFromDedicatedRxThread_EnocderQueriesOnly >= round(self.SamplingRateInHz / 10.0):  # Max of 10Hz for new angular FTmeasurements
-
-                    RotationValue_SuccessFlag = float(self.FUTEK_USB_DLL_Object.Get_Rotation_Values(self.DeviceHandle))  # This is what tells the reader to update its self.FUTEK_USB_DLL_Object.AngleValue and self.FUTEK_USB_DLL_Object.RPMValue
-                    self.AngleValue_EncoderCounts = float(self.FUTEK_USB_DLL_Object.AngleValue)  # The value must be between -8,388,608 and +8,388,607. We're expecting a 0.25deg resolution (1/(360.0*4))
-                    self.AngularSpeedValue_RevPerMin = float(self.FUTEK_USB_DLL_Object.RPMValue) * self.AngularResolution_ActualValue_Deg  # The value must be between -8,388,608 and +8,388,607.
-
-                    self.AngleValue_AllUnitsDict = self.ConvertAngleFromEncoderTicksToAllUnits(self.AngleValue_EncoderCounts)
-                    self.AngularSpeedValue_AllUnitsDict = self.ConvertAngularSpeedFromRPMtoAllUnits(self.AngularSpeedValue_RevPerMin)
-
-                    if self.PrintAngleValuesFlag == 1: print("AngleValue_EncoderCounts: " + str(self.AngleValue_EncoderCounts) + ", AngularSpeedValue_RevPerMin: " + str(self.AngularSpeedValue_RevPerMin))
-
-                    self.LoopCounter_CalculatedFromDedicatedRxThread_EnocderQueriesOnly = 0
                 ##########################################################################################################
                 ##########################################################################################################
 
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+                if self.ReadDataViaSerialFlag == 0:
+                    if self.LoopCounter_CalculatedFromDedicatedRxThread_EncoderQueriesOnly >= round(self.SamplingRateInHz / 10.0):  # Max of 10Hz for new angular FTmeasurements
+
+                        RotationValue_SuccessFlag = float(self.FUTEK_USB_DLL_Object.Get_Rotation_Values(self.DeviceHandle))  # This is what tells the reader to update its self.FUTEK_USB_DLL_Object.AngleValue and self.FUTEK_USB_DLL_Object.RPMValue
+                        self.AngleValue_EncoderCounts = float(self.FUTEK_USB_DLL_Object.AngleValue)  # The value must be between -8,388,608 and +8,388,607. We're expecting a 0.25deg resolution (1/(360.0*4))
+                        self.AngularSpeedValue_RevPerMin = float(self.FUTEK_USB_DLL_Object.RPMValue) * self.AngularResolution_ActualValue_Deg  # The value must be between -8,388,608 and +8,388,607.
+
+                        self.AngleValue_AllUnitsDict = self.ConvertAngleFromEncoderTicksToAllUnits(self.AngleValue_EncoderCounts)
+                        self.AngularSpeedValue_AllUnitsDict = self.ConvertAngularSpeedFromRPMtoAllUnits(self.AngularSpeedValue_RevPerMin)
+
+                        if self.PrintAngleValuesFlag == 1: print("AngleValue_EncoderCounts: " + str(self.AngleValue_EncoderCounts) + ", AngularSpeedValue_RevPerMin: " + str(self.AngularSpeedValue_RevPerMin))
+
+                        self.LoopCounter_CalculatedFromDedicatedRxThread_EncoderQueriesOnly = 0
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+
+                ##########################################################################################################
+                ##########################################################################################################
                 ##########################################################################################################
                 ##########################################################################################################
                 self.MostRecentDataDict["Time"] = self.CurrentTime_CalculatedFromDedicatedRxThread
@@ -1528,13 +2058,14 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
                 self.MostRecentDataDict["AngleValue_AllUnitsDict"] = self.AngleValue_AllUnitsDict
                 self.MostRecentDataDict["AngularSpeedValue_AllUnitsDict"] = self.AngularSpeedValue_AllUnitsDict
 
+                self.MostRecentDataDict["ReadDataViaSerialFlag"] = self.ReadDataViaSerialFlag
+                self.MostRecentDataDict["SerialPortNameCorrespondingToCorrectSerialNumber"] = self.SerialPortNameCorrespondingToCorrectSerialNumber
+
+
                 self.LastFTmeasurement_Raw = self.CurrentFTmeasurement_Raw
                 self.LastFTmeasurement_Filtered = self.CurrentFTmeasurement_Filtered
                 ##########################################################################################################
                 ##########################################################################################################
-
-                ##########################################################################################################
-                ##########################################################################################################
                 ##########################################################################################################
                 ##########################################################################################################
 
@@ -1542,15 +2073,24 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
                 ##########################################################################################################
                 ##########################################################################################################
                 ##########################################################################################################
-                self.LoopCounter_CalculatedFromDedicatedRxThread_EnocderQueriesOnly = self.LoopCounter_CalculatedFromDedicatedRxThread_EnocderQueriesOnly + 1
+                ##########################################################################################################
+                ##########################################################################################################
 
-                self.UpdateFrequencyCalculation_DedicatedRxThread_Filtered()
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+                ##########################################################################################################
+                self.LoopCounter_CalculatedFromDedicatedRxThread_EncoderQueriesOnly = self.LoopCounter_CalculatedFromDedicatedRxThread_EncoderQueriesOnly + 1
 
                 if self.DedicatedRxThread_TimeToSleepEachLoop > 0.0:
                     if self.DedicatedRxThread_TimeToSleepEachLoop > 0.001:
                         time.sleep(self.DedicatedRxThread_TimeToSleepEachLoop - 0.001) #The "- 0.001" corrects for slight deviation from intended frequency due to other functions being called.
                     else:
                         time.sleep(self.DedicatedRxThread_TimeToSleepEachLoop)
+                ##########################################################################################################
+                ##########################################################################################################
                 ##########################################################################################################
                 ##########################################################################################################
                 ##########################################################################################################
@@ -1566,6 +2106,8 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
             ##########################################################################################################
             ##########################################################################################################
             ##########################################################################################################
+            ##########################################################################################################
+            ##########################################################################################################
 
         ##########################################################################################################
         ##########################################################################################################
@@ -1573,7 +2115,11 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
         ##########################################################################################################
         ##########################################################################################################
         ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
 
+        ##########################################################################################################
+        ##########################################################################################################
         ##########################################################################################################
         ##########################################################################################################
         ##########################################################################################################
@@ -1595,7 +2141,11 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
         ##########################################################################################################
         ##########################################################################################################
         ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
 
+    ##########################################################################################################
+    ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
     ##########################################################################################################
@@ -1610,8 +2160,11 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
         try:
 
-            self.FUTEK_USB_DLL_Object.Reset_Board(self.DeviceHandle)  # Without this call, the board gets into a bad state
-            print("FutekForceTorqueReaderUSB520_ReubenPython3Class: CloseDevice, event fired!")
+            if self.ReadDataViaSerialFlag == 0:
+                self.FUTEK_USB_DLL_Object.Reset_Board(self.DeviceHandle)  # Without this call, the board gets into a bad state
+                print("FutekForceTorqueReaderUSB520_ReubenPython3Class: CloseDevice, event fired!")
+            else:
+                pass
 
         except:
             exceptions = sys.exc_info()[0]
@@ -1692,8 +2245,15 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
         #################################################
         #################################################
-        self.ResetTare_Button = Button(self.myFrame, text="Reset Tare", state="normal", width=20, command=lambda: self.ResetTare())
+        self.ResetTare_Button = Button(self.myFrame, text="Reset Tare", state="normal", width=20, command=lambda: self.ResetTare_ButtonResponse())
         self.ResetTare_Button.grid(row=1, column=0, padx=1, pady=1, columnspan=1, rowspan=1)
+        #################################################
+        #################################################
+
+        #################################################
+        #################################################
+        self.FlushSerial_Button = Button(self.myFrame, text="Flush Serial", state="normal", width=20, command=lambda: self.FlushSerial_ButtonResponse())
+        self.FlushSerial_Button.grid(row=1, column=1, padx=10, pady=10, columnspan=1, rowspan=1)
         #################################################
         #################################################
 
@@ -1738,11 +2298,22 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
     ##########################################################################################################
     ##########################################################################################################
-    def ResetTare(self):
+    def ResetTare_ButtonResponse(self):
 
         self.ResetTare_EventNeedsToBeFiredFlag = 1
 
-        #print("ResetTare_Button_Response: Event fired!")
+        #print("ResetTare_ButtonResponse: Event fired!")
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    def FlushSerial_ButtonResponse(self):
+
+        self.FlushSerial_EventNeedsToBeFiredFlag = 1
+
+        #self.MyPrint_WithoutLogFile("FlushSerial_ButtonResponse: Event fired!")
+
     ##########################################################################################################
     ##########################################################################################################
 
