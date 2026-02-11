@@ -6,7 +6,7 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision H, 02/02/2026
+Software Revision I, 02/11/2026
 
 Verified working on: Python 3.11/12/13 for Windows 10, 11 64-bit in DLL or USB-Serial mode (limited to 10Hz).
 Verified working on: Python 3.11/12/13 for Ubuntu 24.04-LTS and Raspberry Pi Bookworm in USB-Serial mode (limited to 10Hz).
@@ -162,7 +162,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
         #########################################################
         self.PrintForceTorqueValuesFlag = 0
         self.PrintAngleValuesFlag = 0
-        self.PrintAllReceivedSerialMessageForDebuggingFlag = 1
+        self.PrintAllReceivedSerialMessageForDebuggingFlag = 0
 
         self.EXIT_PROGRAM_FLAG = 0
         self.OBJECT_CREATED_SUCCESSFULLY_FLAG = 0
@@ -2252,8 +2252,9 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
         #################################################
         #################################################
-        self.FlushSerial_Button = Button(self.myFrame, text="Flush Serial", state="normal", width=20, command=lambda: self.FlushSerial_ButtonResponse())
-        self.FlushSerial_Button.grid(row=1, column=1, padx=10, pady=10, columnspan=1, rowspan=1)
+        if self.ReadDataViaSerialFlag == 1:
+            self.FlushSerial_Button = Button(self.myFrame, text="Flush Serial", state="normal", width=20, command=lambda: self.FlushSerial_ButtonResponse())
+            self.FlushSerial_Button.grid(row=1, column=1, padx=10, pady=10, columnspan=1, rowspan=1)
         #################################################
         #################################################
 
@@ -2300,7 +2301,7 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
     ##########################################################################################################
     def ResetTare_ButtonResponse(self):
 
-        self.ResetTare_EventNeedsToBeFiredFlag = 1
+        self.ResetTare()
 
         #print("ResetTare_ButtonResponse: Event fired!")
     ##########################################################################################################
@@ -2308,11 +2309,32 @@ class FutekForceTorqueReaderUSB520_ReubenPython3Class(Frame): #Subclass the Tkin
 
     ##########################################################################################################
     ##########################################################################################################
+    def ResetTare(self):
+
+        self.ResetTare_EventNeedsToBeFiredFlag = 1
+
+        #print("ResetTare: Event fired!")
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
     def FlushSerial_ButtonResponse(self):
+
+        self.FlushSerial()
+
+        #print("FlushSerial_ButtonResponse: Event fired!")
+
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    def FlushSerial(self):
 
         self.FlushSerial_EventNeedsToBeFiredFlag = 1
 
-        #self.MyPrint_WithoutLogFile("FlushSerial_ButtonResponse: Event fired!")
+        #print("FlushSerial: Event fired!")
 
     ##########################################################################################################
     ##########################################################################################################

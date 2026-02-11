@@ -6,7 +6,7 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision H, 02/02/2026
+Software Revision I, 02/11/2026
 
 Verified working on: Python 3.11/12/13 for Windows 10, 11 64-bit in DLL or USB-Serial mode (limited to 10Hz).
 Verified working on: Python 3.11/12/13 for Ubuntu 24.04-LTS and Raspberry Pi Bookworm in USB-Serial mode (limited to 10Hz).
