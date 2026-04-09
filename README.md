@@ -16,13 +16,15 @@ www.reubotics.com
 
 Apache 2 License
 
-Software Revision I, 02/11/2026
+Software Revision J, 04/09/2026
 
 Verified working on:
 
 Python 3.11/12/13
 
 Windows 10/11 64-bit in DLL or USB-Serial mode (limited to 10Hz).
+
+Ubuntu 24.04-LTS in USB-Serial mode (limited to 10Hz).
 
 Raspberry Pi Bookworm in USB-Serial mode (limited to 10Hz).
 
@@ -73,11 +75,11 @@ NOTE: For loading the DLL via the clr module, it's critical to use the clr *from
 
 FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies: ['clr', 'ftd2xx', 'FUTEK_USB_DLL', 'LowPassFilterForDictsOfLists_ReubenPython2and3Class', 'ReubenGithubCodeModulePaths', 'serial', 'serial.tools', 'ZeroAndSnapshotData_ReubenPython2and3Class']
 
-FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies_TestProgram: ['CSVdataLogger_ReubenPython3Class', 'EntryListWithBlinking_ReubenPython2and3Class', 'keyboard', 'MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class', 'MyPrint_ReubenPython2and3Class', 'ReubenGithubCodeModulePaths']
+FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies_TestProgram: ['CSVdataLogger_ReubenPython3Class', 'EntryListWithBlinking_ReubenPython2and3Class', 'keyboard', 'MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class', 'MyPrint_ReubenPython2and3Class', 'ReubenGithubCodeModulePaths', 'UDPdataExchanger_ReubenPython3Class']
 
-FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies_NestedLayers: ['EntryListWithBlinking_ReubenPython2and3Class', 'GetCPUandMemoryUsageOfProcessByPID_ReubenPython3Class', 'LowPassFilter_ReubenPython2and3Class', 'numpy', 'pexpect', 'psutil', 'pyautogui', 'ReubenGithubCodeModulePaths']
+FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies_NestedLayers: ['EntryListWithBlinking_ReubenPython2and3Class', 'GetCPUandMemoryUsageOfProcessByPID_ReubenPython3Class', 'LowPassFilter_ReubenPython2and3Class', 'LowPassFilterForDictsOfLists_ReubenPython2and3Class', 'numpy', 'pexpect', 'psutil', 'pyautogui', 'ReubenGithubCodeModulePaths']
 
-FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies_All:['clr', 'CSVdataLogger_ReubenPython3Class', 'EntryListWithBlinking_ReubenPython2and3Class', 'ftd2xx', 'FUTEK_USB_DLL', 'GetCPUandMemoryUsageOfProcessByPID_ReubenPython3Class', 'keyboard', 'LowPassFilter_ReubenPython2and3Class', 'LowPassFilterForDictsOfLists_ReubenPython2and3Class', 'MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class', 'MyPrint_ReubenPython2and3Class', 'numpy', 'pexpect', 'psutil', 'pyautogui', 'ReubenGithubCodeModulePaths', 'serial', 'serial.tools', 'ZeroAndSnapshotData_ReubenPython2and3Class']
+FutekForceTorqueReaderUSB520_ReubenPython3Class, ListOfModuleDependencies_All:['clr', 'CSVdataLogger_ReubenPython3Class', 'EntryListWithBlinking_ReubenPython2and3Class', 'ftd2xx', 'FUTEK_USB_DLL', 'GetCPUandMemoryUsageOfProcessByPID_ReubenPython3Class', 'keyboard', 'LowPassFilter_ReubenPython2and3Class', 'LowPassFilterForDictsOfLists_ReubenPython2and3Class', 'MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class', 'MyPrint_ReubenPython2and3Class', 'numpy', 'pexpect', 'psutil', 'pyautogui', 'ReubenGithubCodeModulePaths', 'serial', 'serial.tools', 'UDPdataExchanger_ReubenPython3Class', 'ZeroAndSnapshotData_ReubenPython2and3Class']
 
 ############
 
