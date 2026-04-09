@@ -6,10 +6,9 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision I, 02/11/2026
+Software Revision H, 04/09/2026
 
-Verified working on: Python 3.11/12/13 for Windows 10, 11 64-bit in DLL or USB-Serial mode (limited to 10Hz).
-Verified working on: Python 3.11/12/13 for Ubuntu 24.04-LTS and Raspberry Pi Bookworm in USB-Serial mode (limited to 10Hz).
+Verified working on: Python 3.11/12/13 for Windows 10/11 64-bit, Ubuntu 24.04-LTS,and Raspberry Pi Bookworm.
 '''
 
 #######################################################################################################################
@@ -17,9 +16,9 @@ Verified working on: Python 3.11/12/13 for Ubuntu 24.04-LTS and Raspberry Pi Boo
 #######################################################################################################################
 #######################################################################################################################
 __author__ = 'reuben.brewer'
-__version__ = "Software Revision H, 02/02/2026"
+__version__ = "Software Revision H, 04/09/2026"
 
-from .FutekForceTorqueReaderUSB520_ReubenPython3Class import FutekForceTorqueReaderUSB520_ReubenPython3Class
+from .UDPdataExchanger_ReubenPython3Class import UDPdataExchanger_ReubenPython3Class
 
 '''
 I need the __init__.py file because the directory has the same name as the Python file that it contains.
